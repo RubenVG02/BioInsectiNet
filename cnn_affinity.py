@@ -10,8 +10,7 @@ from keras.regularizers import l2
 
 
 
-arx = pd.read_csv(
-    r"", sep=",")
+arx = pd.read_csv(r"", sep=",")
 
 
 # maximum value that I want my smiles to have, they will be used to train the model
