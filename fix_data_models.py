@@ -119,3 +119,4 @@ def neteja_dades_afinitat(name_file="inh", destination_file="cnn_arreglat", col_
     return f"{destination_file}.csv"
 
 
+obtain_smiles("insect")
