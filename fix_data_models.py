@@ -48,7 +48,7 @@ def clean_data_rnn(name_file="drugs", name_file2="dades_netes"):
     return f"{name_file2}.csv"
 
 
-def obtain_smiles(origin_file="500k_dades", destination_txt="smiles_22"):
+def obtain_smiles(origin_file="500k_dades", destination_txt="smiles_training"):
     '''
         Parameters:
         -arx_origen: file from which we will obtain the smiles
