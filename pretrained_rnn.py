@@ -18,8 +18,8 @@ import time
 
 
 
-def generator(path_model=r"", path_data=r"",
-              number_generated=100, img_druglike=True, path_destination_molecules=r""):
+def generator(path_model=r"/Users/rubenvg/Desktop/antiinsecticides/Fungic_Insecticides-1/modelo-2.hdf5", path_data=r"/Users/rubenvg/Desktop/antiinsecticides/Fungic_Insecticides-1/smiles_22.txt",
+              number_generated=100, img_druglike=True, path_destination_molecules=r"generadas"):
     '''
         Parameters:
         -path_model: Path where the already trained model is located
@@ -96,7 +96,7 @@ def generator(path_model=r"", path_data=r"",
                                             Dropout(0.1),
                                             CuDNNLSTM(128),
                                             Dropout(0.1),
-                                            Dense(map_char, activation="softmax")])
+                                            Dense(map_char-1, activation="softmax")])
         return model
 
     model = create_model()
