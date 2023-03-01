@@ -120,6 +120,10 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
             pattern=np.append(pattern, index)
             pattern = pattern[1:len(pattern)]
         final = final.split("\n")
+        if i%10==0:
+            print("\n\n\nChanging seed...\n\n\n")
+            pattern=create_seed(max_molecules=seq_length)
+            print("\"", ''.join([int_2_elements[value[0]] for value in pattern]), "\"")
         for i in final:
             mol1 = Chem.MolFromSmiles(i)
             if len(i) > 20:
