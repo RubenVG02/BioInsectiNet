@@ -10,7 +10,7 @@ from keras.callbacks import ModelCheckpoint
 import matplotlib.pyplot as plt
 
 
-data = open(r"").read()
+data = open(r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\insectos.txt").read()
 
 # to get the unique data elements to integers using a dictionary
 # so we associate a numerical value to each letter
@@ -67,23 +67,24 @@ model = tf.keras.models.Sequential([CuDNNLSTM(128, input_shape=(137, 1), return_
 #Depending on the number of different elements in your smile sequence, map_char can be changed, and you can also change it manually depending on your df
 
 
-model.load_weights(
-    r"")
+'''model.load_weights(
+    r"")'''
 #This is used to continue training a model that has already been trained
 
 model.compile(optimizer="adam",
                loss="categorical_crossentropy", metrics=["accuracy"])
 #Different loss functions can be used, but I reccomend categorical_crossentropy
 
-filepath = "" #Path to save the model
+filepath = "modelo_rnn_insectos.hdf5" #Path to save the model
 checkpoint = ModelCheckpoint(filepath=filepath,
                              monitor='loss',
                              verbose=1,
                              save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 
-r = model.fit(dataset, epochs=150, callbacks=callbacks_list, batch_size=128)
+r = model.fit(dataset, epochs=100, callbacks=callbacks_list, batch_size=128)
 
 plt.plot(r.history["accuracy"], label="accuracy")
 plt.legend()
 plt.show()
+plt.savefig("acc.png")

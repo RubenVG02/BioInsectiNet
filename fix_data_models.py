@@ -118,3 +118,6 @@ def neteja_dades_afinitat(name_file="inh", destination_file="cnn_file_fixed", co
     df_no_dup = df_no_dup.sample(frac=1).reset_index(drop=True)
     df_no_dup.to_csv(f"{destination_file}.csv", index=False, sep=",")
     return f"{destination_file}.csv"
+
+
+obtain_smiles("aaa", "insectos", separator=";")
