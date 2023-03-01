@@ -18,7 +18,7 @@ import time
 
 
 
-def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\modelo_rnn_insectos.hdf5", path_data=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\insectos.txt",
+def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\modelo_rnn_insectos.hdf5", path_data=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\insects.txt",
               number_generated=100, img_druglike=True, path_destination_molecules=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\generated_molecules/generated_molecules.txt"):
     '''
         Parameters:
@@ -96,7 +96,7 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
                                             Dropout(0.1),
                                             CuDNNLSTM(128),
                                             Dropout(0.1),
-                                            Dense(map_char-1, activation="softmax")])
+                                            Dense(map_char, activation="softmax")])
         return model
 
     model = create_model()
@@ -110,7 +110,7 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
     final = ""
     total_smiles = []
     for i in range(number_generated):
-        for i in range(random.randrange(100,137)):
+        for i in range(random.randrange(40,137)):
             x = np.reshape(pattern, (1, len(pattern)))
             prediction = model.predict(x, verbose=0)
             index = np.argmax(prediction)  #Get the maximum value from the prediction array

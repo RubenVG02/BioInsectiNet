@@ -55,3 +55,12 @@ CC(=O)Nc2cccc(C(=O)NCC(=O)NC)c2
 N#Cc1c(Cl)c(NC(=O)c2ccccc2C)ccc1C
 COc1ccc(/C=C/c2nc3ccccc3s2)cc1OC
 CCNC(=O)CNC(=O)c1ccc2c(c1)OCCO2
+O=C(Oc1ccccc1OCc1ccccc1)c1ccccc1F
+C=C(c1ccccc1)c1ccccc1C
+C=CCNc1nnc(SCc2ccccc2C)cc1OC(=O)CS
+CCCC(=O)Nc1ccccc1C(=O)CSc1ccc2ccccc2n1
+CC1=C(C)COC(=O)CC(=O)NC(C)C1
+CCCC(=O)Nc1ccccc1OCC(=O)NCC
+OOC(=O)c1ccc(Br)cc1Cl
+Cc1ccc(NC(=O)C(=O)Nc2ccc(C)cc2)cc1
+O=C(COC(=O)C1CCCCCC1)c1ccccc1F
