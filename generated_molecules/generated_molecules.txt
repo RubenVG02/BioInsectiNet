@@ -1,0 +1,15 @@
+C/C(=N\NCC1CCCCC1)c1ccco1
+C(=O)NCCCCCCC(=O)OCC(=O)OCCCCCC(=O)OC(C)C
+Cc1ccc(C)cc1C(=O)Nc1ccc(OC)c(OC)c1
+CCCCCCC(=O)NCCCCCCCC(=O)NCCCCC
+CCNC(=O)c1ccc2nc(NC(=O)CSc3ncccn3)sc2c1
+Cc1ccccc1/C=C1/C(=C/c2ccc(C)cc2)n1
+O=C(c1ccccc1)c1ccccc1C
+CCOC(=O)Cn1nnnc1COC(=O)c1ccc(Cl)cc1Cl
+CC1=C(C)CC(=O)N(Cc2ccccc2)CC1
+Cc1ccccc1C(=O)Nc1c(C)cc(C)c(C)c1OC
+Oc1cc(O)c(OC(=O)Nc2ccccc2)cc1
+O(C)S(=O)(=O)c1ccc(Cl)cc1
+Cc1ccc2[nH]c(-c3ccc3c(c4)OCO4)nc2c1
+Cc1ccccc1C(=O)Nc1c(C)cc(C)c(C)c1C
+CCCC(=O)Nc1ccccc1OCC(=O)NCCCCCC

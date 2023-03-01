@@ -19,7 +19,7 @@ import time
 
 
 def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\modelo_rnn_insectos.hdf5", path_data=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\insectos.txt",
-              number_generated=100, img_druglike=True, path_destination_molecules=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\generated_molecules"):
+              number_generated=100, img_druglike=True, path_destination_molecules=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\generated_molecules/generated_molecules.txt"):
     '''
         Parameters:
         -path_model: Path where the already trained model is located
@@ -137,7 +137,7 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
                                 file.write(i + "\n")
                                 if img_druglike == True:
                                     Draw.MolToImageFile(
-                                mol1, filename=fr"C:\Users\ASUS\Desktop\github22\dasdsd\moleculas_generadas\moleculas_nuevo_generador/molecula{int(time.time())}.jpg", size=(400, 300))
+                                mol1, filename=fr"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\generated_molecules/molecula{int(time.time())}.jpg", size=(400, 300))
                         total_smiles.append(i)
                         print("The obtained molecule is drug-like")
             else:
@@ -145,4 +145,4 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
         final = ""
     return total_smiles
 
-generator(number_generated=50)
+generator(number_generated=100)
