@@ -48,7 +48,11 @@ def clean_data_rnn(name_file="drugs", name_file2="dades_netes"):
     return f"{name_file2}.csv"
 
 
+<<<<<<< HEAD
 def obtain_smiles(origin_file="500k_dades", destination_txt="smiles_22", separator=","):
+=======
+def obtain_smiles(origin_file="500k_dades", destination_txt="smiles_training"):
+>>>>>>> c3955424d316d2f55d5806b59f857d4fdf98e35e
     '''
         Parameters:
         -origin_file: file from which we will obtain the smiles
@@ -120,3 +124,4 @@ def neteja_dades_afinitat(name_file="inh", destination_file="cnn_file_fixed", co
     return f"{destination_file}.csv"
 
 
+obtain_smiles("insect")
