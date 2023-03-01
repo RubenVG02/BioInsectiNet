@@ -18,7 +18,7 @@ import time
 
 
 
-def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\modelo_rnn_insectos.hdf5", path_data=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\insects.txt",
+def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\modelo_rnn_insectos.hdf5", path_data=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\insectos.txt",
               number_generated=100, img_druglike=True, path_destination_molecules=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\generated_molecules/generated_molecules.txt"):
     '''
         Parameters:
@@ -96,7 +96,7 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
                                             Dropout(0.1),
                                             CuDNNLSTM(128),
                                             Dropout(0.1),
-                                            Dense(map_char, activation="softmax")])
+                                            Dense(map_char-1, activation="softmax")])
         return model
 
     model = create_model()
@@ -122,7 +122,7 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
         final = final.split("\n")
         if i%10==0:
             print("\n\n\nChanging seed...\n\n\n")
-            pattern=create_seed(max_molecules=seq_length)
+            pattern=create_seed(max_molecules=seq_length)  #Change the seed in order to obtain better results and more diversity
             print("\"", ''.join([int_2_elements[value[0]] for value in pattern]), "\"")
         for i in final:
             mol1 = Chem.MolFromSmiles(i)
@@ -149,4 +149,3 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
         final = ""
     return total_smiles
 
-generator(number_generated=100)

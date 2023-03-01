@@ -64,3 +64,13 @@ CCCC(=O)Nc1ccccc1OCC(=O)NCC
 OOC(=O)c1ccc(Br)cc1Cl
 Cc1ccc(NC(=O)C(=O)Nc2ccc(C)cc2)cc1
 O=C(COC(=O)C1CCCCCC1)c1ccccc1F
+COC(=O)c1ccc(N/N=C/c2ccccc2F)cc1
+Cc1ccccc1C(=O)C(=O)Nc1ccc2c(c1)OCCO2
+COc1ccc(SCc2ccccc2)cc1OC(=O)C
+Cc1ccc(C)cc1C(=O)Nc1ccc2c(c1)OCO2
+O=C1CCN1C(=O)N1CCCCC1
+O=C(Nc1ccc(C)cc1)c1ccc2c(c1)OCCO2
+O=C(Oc1ccccc1O)Nc1ccccc1F
+CCS(=O)(=O)c1ccc(Nc2nc3ccccc3s2)cc1OC
+CNc1ccc(OC(=O)c2ccccc2)cc1
+Cc1ccccc1C(=O)Nc1c(C)ccc(C)c1

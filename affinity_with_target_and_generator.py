@@ -45,15 +45,22 @@ def upload_mega(name_file):
     print(link)
     return link
     
-def draw_best(ic50_menor, ic50, smiles, nom_arx):
+def draw_best(ic50_menor, ic50, smiles, name_file):
     #Function to draw the best molecule obtained
+    '''
+        Parameters:
+        -ic50_menor: Lowest value of IC50 obtained
+        -ic50: List of IC50 values obtained
+        -smiles: List of smiles obtained
+        -name_file: Name of the file where the image will be saved. Will be saved as best_molecule_{name_file}.jpg in the results_examples folder
+    '''
     index=ic50.index(ic50_menor)
     best=smiles[index]
     molecule=Chem.MolFromSmiles(best)
-    Draw.MolToImageFile(molecule, filename=fr"C:\Users\ASUS\Desktop\github22\dasdsd\resultats\molecules/millor_molecula_{nom_arx}.jpg",
+    Draw.MolToImageFile(molecule, filename=fr"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\results_examples/best_molecule_{name_file}.jpg",
             size=(400, 300))
 
-def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)", upload_to_mega=True, draw_minor=True, max_molecules=5, db_smiles=True, arx_db=r"C:\Users\ASUS\Desktop\github22\dasdsd\moleculas_generadas\moleculas_nuevo_generador\moleculas_druglike2.txt", accepted_value=100, generate_qr=True):
+def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)", upload_to_mega=True, draw_minor=True, max_molecules=5, db_smiles=True, arx_db=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\generated_molecules\generated_molecules.txt", accepted_value=1000, generate_qr=True):
     '''
     Function to generate molecules using an RNN model, and compare their affinity with a specific target, in addition to obtaining a representative score in the
     complexity of its synthesis
@@ -77,7 +84,7 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
     ic50 = []
     smiles = []
     score = []
-    create_file(nom_arxiu=name_file_destination)
+    create_file(name_file=name_file_destination)
     valor=0
     while not valor==max_molecules:
         if not db_smiles:
@@ -94,7 +101,7 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
                 smiles.append(i)
             i = i.replace("@", "").replace("/", "")
             try:
-                ic50_prediction = calculate_affinity(smile=i, fasta=target)
+                ic50_prediction = calculate_affinity(smile=i, fasta=target, path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\cnn_model.hdf5")
                 if ic50_prediction<accepted_value:
                     valor+=1
                 ic50.append(float(ic50_prediction))
@@ -104,8 +111,8 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
                 break
     ic50_menor = min(ic50)
     combination = list(zip(smiles, ic50, score))
-    lines = open(f"{name_file_destination}.csv", "r").read()
-    with open(f"{name_file_destination}.csv", "a", newline="") as file:
+    lines = open(fr"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\{name_file_destination}.csv", "r").read()
+    with open(fr"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\{name_file_destination}.csv", "a", newline="") as file:
         for i in combination:
             if str(i[1]) not in lines and float(i[1])<100:
                 file.write(f"{i[0]},{i[1]},{i[2]}\n")
@@ -114,7 +121,7 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
         enllaç=upload_mega(name_file=name_file_destination)
         if generate_qr:
             qr_generat=qrcode.make(enllaç)
-            qr_generat.save(fr"C:\Users\ASUS\Desktop\github22\dasdsd\resultats\qr/qr_{name_file_destination}.png")
+            qr_generat.save(fr"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\qr_img/qr_{name_file_destination}.png")
         
     
     '''FQx1aKXvDO4jabS4siLmxw'''
@@ -122,7 +129,7 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
         draw_best(ic50_menor,ic50,smiles, name_file_destination)
             
 
-
+find_candidates(db_smiles=True, arx_db=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\generated_molecules\generated_molecules.txt", target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)", upload_to_mega=True, draw_minor=True, max_molecules=5, accepted_value=1000, generate_qr=True)
 
 
 
