@@ -6,7 +6,8 @@ def obtain_sdf(smile="", name="molecule_sdf"):
     Function to obtain sdf file of an smile sequence in order to use it on PyMol
     
     Parameters:
-    -smile: 
+    -smile: Sequence of the molecule in smile format
+    -name: Name of the sdf file
     
     
     '''
