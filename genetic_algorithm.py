@@ -7,7 +7,7 @@ import csv
 from affinity_with_target_and_generator import find_candidates
 
 
-def select_parents(initial_population=r"", target=""):
+def select_parents(initial_population=r"/Users/rubenvg/Desktop/antiinsecticides/Fungic_insecticides/Topoisomerasa_4(Aeruginosa).csv", target="", bests=2):
 
     '''
     Function to select the parents of the first generations of the genetic algorithm. The parents are the molecules with the best affinity to the target.
@@ -22,9 +22,11 @@ def select_parents(initial_population=r"", target=""):
     if not ".txt" in initial_population:
         with open(initial_population, "r") as file:
                     reader = csv.reader(file)
-                    initial_population = [row for row in reader[1]] #mirar si es 1 o 0
+                    initial_population = [row[0] for row in reader][1:]
+                    print(initial_population)
                     score=[]
                     for i in initial_population:
+                        i=i.replace("@", "").replace("/", "")
                         value=calculate_affinity(target, i)
                         score.append(value)
 
@@ -34,11 +36,12 @@ def select_parents(initial_population=r"", target=""):
             for row in file:
                 value=calculate_affinity(target, row)
                 score.append(value)
-    score=score.sort()
-    parents=score[:2]
+    total=zip(initial_population, score)
+    total=sorted(total, key=lambda x: x[1])
+    parents=total[:bests]
     return parents            
   
-def childs(parents=select_parents()):
+def childs(parents):
 
     '''
     Function to obtain the childs of the parents selected in the select_parents function.
@@ -139,3 +142,5 @@ def compare_ic50(list_score, objective_ic50):
         else:
             return False
     
+
+genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"/Users/rubenvg/Desktop/antiinsecticides/Fungic_insecticides/Topoisomerasa_4(Aeruginosa).csv", objective_ic50=20, generations=100, bests=2)

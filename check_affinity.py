@@ -7,8 +7,8 @@ from keras.regularizers import l2
 
 
 
-def calculate_affinity(path_csv=r"C:\Users\ASUS\Desktop\github22\dasdsd\CSV\500k_dades.csv", smile="", fasta="", path_model=r"C:\Users\ASUS\Desktop\github22\dasdsd\models_definitius\model_prueba_cnn.hdf5"):
-    arx = pd.read_csv(f"{path_csv}", sep=",")
+def calculate_affinity(path_csv=r"C:\Users\ASUS\Desktop\github22\dasdsd\CSV\500k_dades.csv", smile="", fasta="", path_model=r"cnn_model.hdf5"):
+    #path = pd.read_csv(f"{path_csv}", sep=",")
 
     # maximum value that I want my smileys to have, they will be used to train the model
     max_smiles = 100
@@ -27,7 +27,7 @@ def calculate_affinity(path_csv=r"C:\Users\ASUS\Desktop\github22\dasdsd\CSV\500k
     #To associate all elements with a given int (range is 1, len+1 because they are filled with zeros to reach maximum_fasta)
     
     #kernel regulator
-    regulador = l2(0.001)
+    regulator = l2(0.001)
 
 
     smiles_input = tf.keras.Input(
