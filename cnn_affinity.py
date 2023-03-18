@@ -144,7 +144,7 @@ def model_cnn():
                    metrics={'output': r2_score})
     
     # To do checkpoints
-    save_model_path = "model_prueba_cnn.hdf5"
+    save_model_path = "cnn_model.hdf5"
     checkpoint = ModelCheckpoint(save_model_path,
                                  monitor='val_loss',
                                  verbose=1,
@@ -164,12 +164,12 @@ def model_cnn():
         print(f"Començant el epoch {epoch+1}")
 
         while final < 355000:
-            X_smiles, X_fasta, y_train = convert(train[inici:final])
+            X_smiles, X_fasta, y_train = convert(train[start:end])
 
             r = model.fit({'smiles_input': np.array(X_smiles),
                             'fasta_input': np.array(X_fasta)}, {'output': np.array(y_train)},
                            validation_data=({'smiles_input': np.array(X_test_smile),
-                                             'fasta_input': np.array(X_test_fasta)}, {'output': np.array(T_test_IC50)}),  callbacks=[checkpoint], epochs=1, batch_size=64, shuffle=True)
+                                             'fasta_input': np.array(X_test_fasta)}, {'output': np.array(T_test_IC50)}),  callbacks=[checkpoint], epochs=20, batch_size=64, shuffle=True)
 
             inici += size_per_epoch
             final += size_per_epoch
