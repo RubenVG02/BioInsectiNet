@@ -205,8 +205,8 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
         else:
             parents=total[:bests]
             if parents[0][1] not in all_bests:
-                all_bests.append(parents[0][0], parents[0][1])
-            if parents[0][1]< min(all_bests[1]):
+                all_bests.append(tuple((parents[0][0], parents[0][1])))
+            if parents[0][1]> min([i[1] for i in all_bests]):
                 sum_not_improve+=1
             print("\n\n\n" + "Generation:", gen+1)
             print("Best SMILE sequence obtained:", parents[0][0])
