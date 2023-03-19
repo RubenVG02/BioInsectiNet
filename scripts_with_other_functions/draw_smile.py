@@ -2,9 +2,9 @@ from rdkit import Chem
 from rdkit.Chem import Draw
 
 
-smile = "C=C([O-])c1ccc(C(=O)Bc2ncc(C(=O)N[C@H](C)[C@H](C)CC)o2)cc1"
+smile = "C=C(F)c1ccc(C(=N)Cc2ncc(C(=O)NC(C)C(C)CC)[pH]2)cc1"
 
-FILENAME="moleule.png"
+FILENAME="moleule2.png"
 
 molecule = Chem.MolFromSmiles(smile)
 Draw.MolToImageFile(molecule, filename=FILENAME,
