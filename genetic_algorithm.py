@@ -84,20 +84,19 @@ def mutations(smile="", mutation_rate=0.1):
     -mutation_rate: Probability of mutation of an atom in the molecule.
 
     '''
-    atoms=[6, 14, 5, 7, 15, 8, 16, 9, 17, 35, 53]
+    atoms=[6, 5, 7, 15, 8, 16, 9, 17, 35, 53]
 
-    aromatic_atoms=[6,7,15,8,16]
+    aromatic_atoms=[6, 7, 15, 8, 16]
 
     len_smile=Chem.MolFromSmiles(smile).GetNumAtoms()
 
     copy=smile  #We copy the molecule in order to not modify the original molecule
 
-    mol1=Chem.MolFromSmiles(smile)
-    try:
-        Chem.Kekulize(mol1)
-        mol1=RWMol(mol1)
-    except:
-        return
+    mol1=Chem.MolFromSmiles(copy)
+    Chem.SanitizeMol(mol1)
+    Chem.Kekulize(mol1)
+    mol1=RWMol(mol1)
+
     
     
     child_generated=[]
@@ -107,6 +106,7 @@ def mutations(smile="", mutation_rate=0.1):
                 atom_to_remove=np.random.randint(0, len_smile) #random atom to remove from the molecule
                 try:
                     valence_atom=mol1.GetAtomWithIdx(atom_to_remove).GetTotalValence() #valence of the atom to remove
+                    print(valence_atom)
                 except:
                     pass
                 if mol1.GetAtomWithIdx(atom_to_remove).GetIsAromatic():
@@ -119,16 +119,22 @@ def mutations(smile="", mutation_rate=0.1):
                     mol1.GetAtomWithIdx(atom_to_remove).SetIsAromatic(True)
                 else:
                     if valence_atom==1:
-                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 11)])) 
+                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 10)])) 
                     elif valence_atom==2:
-                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 7)]))  
+                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 6)]))  
                     elif valence_atom==3:
-                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 5)]))
+                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 4)]))
                     elif valence_atom==4:
-                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 2)]))  
+                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 1)]))  
+            try:
+                Chem.SanitizeMol(mol1)
+                Chem.Kekulize(mol1)
+            except Chem.rdchem.KekulizeException:
+                pass
             if Chem.MolToSmiles(mol1):
                 if Chem.MolToSmiles(mol1) not in child_generated:
                     if check_druglikeness(Chem.MolToSmiles(mol1)):
+                        
                         child_generated.append(Chem.MolToSmiles(mol1))        
     return child_generated
                 
@@ -144,7 +150,7 @@ def file_preparation(file_path="", name_file="", headers=[]):
         writer.writerow(headers)     
 
 
-def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=2, path_save=r"", save_since=20):
+def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=2, path_save=r"", save_since=20, name_file=""):
     '''
     Function to find the best molecule to bind to a target protein using a genetic algorithm.
 
@@ -156,8 +162,10 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
     -bests: Number of best molecules that we want to select from each generation. By default, it is 5.
     -path_save: Path where we want to save the best molecule obtained in each generation. By default, it is the current directory.
     -save_since: Since which ic50 value we want to save the best molecule obtained in each generation. By default, it is 20.
+    -name_file: Name of the file where we want to save the best molecule obtained depending on best and save_since. By default, it is "resultados.csv".
     '''
     parents=select_parents(initial_population=initial_pop_path, target=target, bests=bests)  #We select the best molecules from the initial population
+    file_preparation(file_path=path_save, name_file=name_file, headers=["SMILE", "Affinity"])
     for gen in range(generations):
         new_generation=[]
         parents=[i[0] for i in parents]
@@ -167,17 +175,17 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
 
         score=[]
         print(new_generation)
+        
         for smile in new_generation:
             smile=str(smile).replace("@", "").replace("\\","").replace("/", "").replace(".", "")
             value=calculate_affinity(smile=smile, fasta=target)
             score.append(value)
         total=zip(new_generation, score)
         total=sorted(total, key=lambda x: x[1])
-        file_preparation(file_path=path_save, name_file="genetic_algorithm.csv", headers=["SMILE", "Affinity"])
         with open(path_save, "a") as file:
             for i in total:
                 if i[1] <= save_since:
-                    file.write(f"{i[0]}, {i[1]}")
+                    file.write(f"{i[0]}, {i[1]}\n")
         if compare_ic50(list_score=total, objective_ic50=objective_ic50) is not False:
             best_individual, affinity= compare_ic50(list_score=total, objective_ic50=objective_ic50)
             print("Generation:", gen+1)
@@ -212,4 +220,4 @@ def compare_ic50(list_score, objective_ic50):
             return False
     
 
-genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=5, generations=100, bests=2, path_save=r"resultados.csv", save_since=40)
+genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=20, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados.csv")
