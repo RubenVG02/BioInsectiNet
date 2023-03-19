@@ -7,6 +7,7 @@ import random
 import numpy as np
 import csv
 from affinity_with_target_and_generator import find_candidates
+import time
 
 
 def select_parents(initial_population=r"/Users/rubenvg/Desktop/antiinsecticides/Fungic_insecticides/Topoisomerasa_4(Aeruginosa).csv", target="", bests=2):
@@ -92,8 +93,12 @@ def mutations(smile="", mutation_rate=0.1):
     copy=smile  #We copy the molecule in order to not modify the original molecule
 
     mol1=Chem.MolFromSmiles(smile)
-    Chem.Kekulize(mol1)
-    mol1=RWMol(mol1)
+    try:
+        Chem.Kekulize(mol1)
+        mol1=RWMol(mol1)
+    except:
+        return
+    
     
     child_generated=[]
     while len(child_generated)<5:
@@ -139,7 +144,7 @@ def file_preparation(file_path="", name_file="", headers=[]):
         writer.writerow(headers)     
 
 
-def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=5, path_save=r"", save_since=20):
+def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=2, path_save=r"", save_since=20):
     '''
     Function to find the best molecule to bind to a target protein using a genetic algorithm.
 
@@ -168,12 +173,11 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
             score.append(value)
         total=zip(new_generation, score)
         total=sorted(total, key=lambda x: x[1])
-        file_preparation(file_path=path_save, name_file="genetic_algorithm", headers=["SMILE", "Affinity"])
+        file_preparation(file_path=path_save, name_file="genetic_algorithm.csv", headers=["SMILE", "Affinity"])
         with open(path_save, "a") as file:
             for i in total:
                 if i[1] <= save_since:
                     file.write(f"{i[0]}, {i[1]}")
-
         if compare_ic50(list_score=total, objective_ic50=objective_ic50) is not False:
             best_individual, affinity= compare_ic50(list_score=total, objective_ic50=objective_ic50)
             print("Generation:", gen+1)
@@ -183,6 +187,11 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
             break
         else:
             parents=total[:bests]
+            print("\n\n\n" + "Generation:", gen+1)
+            print("Best SMILE sequence obtained:", parents[0][0])
+            print("Fitness:", parents[0][1])
+            print("\n\n\n")
+            time.sleep(4)
             continue
     
 
@@ -203,4 +212,4 @@ def compare_ic50(list_score, objective_ic50):
             return False
     
 
-genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=5, generations=100, bests=2, path_save=r"resultados.csv", save_since=10)
+genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=5, generations=100, bests=2, path_save=r"resultados.csv", save_since=40)

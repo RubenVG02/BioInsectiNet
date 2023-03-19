@@ -119,5 +119,5 @@ parents=select_parents(target=target)
 parents=[i[0] for i in parents]
 print(parents)'''
 
-len_smile=Chem.MolFromSmiles("Cc1ccc(-c2ccc(C)c(NC(=O)C[C@@H](C)C(=O)NCc3ccccc3)n2)cc1").GetNumAtoms()
-print(len_smile)
+mol1=Chem.MolFromSmiles("C[SiH](C[Si](=O)c1cnc(CC(=O)c2ccc(C(=O)[O-])cc2)s1)[C@H]([SiH3])C[SiH3]")
+
