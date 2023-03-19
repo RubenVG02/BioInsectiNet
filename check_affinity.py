@@ -13,7 +13,7 @@ def calculate_affinity(path_csv=r"C:\Users\ASUS\Desktop\github22\dasdsd\CSV\500k
     # maximum value that I want my smileys to have, they will be used to train the model
     max_smiles = 100
     elements_smiles = ['6', '3', '=', 'H', 'C', 'O', 'c', '#', 'a', '[', 't', 'r', 'K', 'n', 'B', 'F', '4', '+', ']', '-', '1', 'P',
-                       '0', 'L', '%', 'g', '9', 'Z', '(', 'N', '8', 'I', '7', '5', 'l', ')', 'A', 'e', 'o', 'V', 's', 'S', '2', 'M', 'T', 'u', 'i']
+                       '0', 'L', 'g', '9', 'Z', '(', 'N', '8', 'I', '7', '5', 'l', ')', 'A', 'e', 'o', 'V', 's', 'S', '2', 'M', 'T', 'u', 'i', "p"]
     # elements_smiles refers to the elements by which the smiles can be formed
 
     int_smiles = dict(zip(elements_smiles, range(1, len(elements_smiles)+1)))

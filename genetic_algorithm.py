@@ -25,18 +25,17 @@ def select_parents(initial_population=r"/Users/rubenvg/Desktop/antiinsecticides/
         with open(initial_population, "r") as file:
                     reader = csv.reader(file)
                     initial_population = [row[0] for row in reader][1:]
-                    print(initial_population)
                     score=[]
                     for i in initial_population:
                         i=i.replace("@", "").replace("/", "")
-                        value=calculate_affinity(target, i)
+                        value=calculate_affinity(smile=i, fasta=target)
                         score.append(value)
 
     if ".txt" in initial_population:
         with open(initial_population, "r") as file:
             score=[]
             for row in file:
-                value=calculate_affinity(target, row)
+                value=calculate_affinity(smile=row, fasta=target)
                 score.append(value)
     total=zip(initial_population, score)
     total=sorted(total, key=lambda x: x[1])
@@ -105,7 +104,6 @@ def mutations(smile="", mutation_rate=0.1):
                     valence_atom=mol1.GetAtomWithIdx(atom_to_remove).GetTotalValence() #valence of the atom to remove
                 except:
                     pass
-                print(valence_atom)
                 if mol1.GetAtomWithIdx(atom_to_remove).GetIsAromatic():
                     if valence_atom==2:
                         mol1.ReplaceAtom(atom_to_remove, Chem.Atom(aromatic_atoms[np.random.randint(1, 5)]))
@@ -127,13 +125,21 @@ def mutations(smile="", mutation_rate=0.1):
                 if Chem.MolToSmiles(mol1) not in child_generated:
                     if check_druglikeness(Chem.MolToSmiles(mol1)):
                         child_generated.append(Chem.MolToSmiles(mol1))        
-    print(child_generated)
     return child_generated
                 
+def file_preparation(file_path="", name_file="", headers=[]):
+    '''
+    Function to create the .csv file to which the obtained data will be added
     
+    Parameters:
+    -headers: Names of the columns we want to use
+    '''
+    with open(f"{name_file}.csv", "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(headers)     
 
 
-def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=5):
+def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=5, path_save=r"", save_since=20):
     '''
     Function to find the best molecule to bind to a target protein using a genetic algorithm.
 
@@ -143,6 +149,8 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
     -objective_ic50: Value of the affinity of the target protein that we want to obtain. By default, it is 20.
     -generations: Number of generations of the genetic algorithm. By default, it is 100.
     -bests: Number of best molecules that we want to select from each generation. By default, it is 5.
+    -path_save: Path where we want to save the best molecule obtained in each generation. By default, it is the current directory.
+    -save_since: Since which ic50 value we want to save the best molecule obtained in each generation. By default, it is 20.
     '''
     parents=select_parents(initial_population=initial_pop_path, target=target, bests=bests)  #We select the best molecules from the initial population
     for gen in range(generations):
@@ -150,14 +158,22 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
         parents=[i[0] for i in parents]
         for i in parents:
             mutation=mutations(smile=i, mutation_rate=0.1)
-            new_generation.append(mutation)
-        parents=new_generation
+            new_generation.extend(mutation)
+
         score=[]
-        for i in new_generation:
-            value=calculate_affinity(i, target)
+        print(new_generation)
+        for smile in new_generation:
+            smile=str(smile).replace("@", "").replace("\\","").replace("/", "").replace(".", "")
+            value=calculate_affinity(smile=smile, fasta=target)
             score.append(value)
-        total=zip(parents, score)
+        total=zip(new_generation, score)
         total=sorted(total, key=lambda x: x[1])
+        file_preparation(file_path=path_save, name_file="genetic_algorithm", headers=["SMILE", "Affinity"])
+        with open(path_save, "a") as file:
+            for i in total:
+                if i[1] <= save_since:
+                    file.write(f"{i[0]}, {i[1]}")
+
         if compare_ic50(list_score=total, objective_ic50=objective_ic50) is not False:
             best_individual, affinity= compare_ic50(list_score=total, objective_ic50=objective_ic50)
             print("Generation:", gen+1)
@@ -187,5 +203,4 @@ def compare_ic50(list_score, objective_ic50):
             return False
     
 
-genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=5, generations=100, bests=2)
-
+genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=5, generations=100, bests=2, path_save=r"resultados.csv", save_since=10)
