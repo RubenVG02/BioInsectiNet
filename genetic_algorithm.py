@@ -1,8 +1,10 @@
 from rdkit import Chem 
 from rdkit.Chem import Draw
 from rdkit.Chem.rdchem import RWMol
+from rdkit.Chem import Descriptors
 from check_affinity import calculate_affinity
 import random   
+import numpy as np
 import csv
 from affinity_with_target_and_generator import find_candidates
 
@@ -41,15 +43,26 @@ def select_parents(initial_population=r"/Users/rubenvg/Desktop/antiinsecticides/
     parents=total[:bests]
     return parents            
   
-'''def childs(parents):
 
-    
-    Function to obtain the childs of the parents selected in the select_parents function.
+def check_druglikeness(smile=""):
+    '''
+    Function to check if a molecule is druglike or not. If it is not druglike, it will be removed from the population.
 
     Parameters:
-    -parents: Parents selected in the select_parents function.
+    -smile: Sequence of the molecule in smile format.
 
+    '''
+    mol1=Chem.MolFromSmiles(smile)
+    if mol1 is not None:
+        if Descriptors.ExactMolWt(mol1) < 500 and Descriptors.MolLogP(mol1) < 5 and Descriptors.NumHDonors(mol1) < 5 and Descriptors.NumHAcceptors(mol1) < 10:
+                        #All the conditions that a molecule must meet to be considered drug-like  
+            return True
+            
+def childs(parents):
+    '''
+    Function to cross two smile sequences in order to obtain two new molecules. Function used when ic50 value does not improve during the generations.
     
+    '''
     crossover_point=random.randint(0, len(parents[0])-1)
     child1 = parents[0][:crossover_point] + parents[1][crossover_point:]
     child2 = parents[1][:crossover_point] + parents[0][crossover_point:]
@@ -59,7 +72,7 @@ def select_parents(initial_population=r"/Users/rubenvg/Desktop/antiinsecticides/
     if child1 is not None and child2 is not None:
         return child1, child2
     else:
-        childs()''' #inefficient function, it is better to use the function mutation
+        childs() 
 
 def mutations(smile="", mutation_rate=0.1):
 
@@ -112,15 +125,15 @@ def mutations(smile="", mutation_rate=0.1):
                         mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 2)]))  
             if Chem.MolToSmiles(mol1):
                 if Chem.MolToSmiles(mol1) not in child_generated:
-                    child_generated.append(Chem.MolToSmiles(mol1))
-
-               
+                    if check_druglikeness(Chem.MolToSmiles(mol1)):
+                        child_generated.append(Chem.MolToSmiles(mol1))        
     print(child_generated)
+    return child_generated
                 
     
 
 
-def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=10):
+def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=5):
     '''
     Function to find the best molecule to bind to a target protein using a genetic algorithm.
 
@@ -129,22 +142,22 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
     -initial_pop_path: Path of the initial population of smile molecules. If this file does not exist, the function will create it.
     -objective_ic50: Value of the affinity of the target protein that we want to obtain. By default, it is 20.
     -generations: Number of generations of the genetic algorithm. By default, it is 100.
-    -bests: Number of best molecules that we want to select from each generation. By default, it is 10.
+    -bests: Number of best molecules that we want to select from each generation. By default, it is 5.
     '''
-    parents=select_parents(initial_population=initial_pop_path, target=target)  
-    
+    parents=select_parents(initial_population=initial_pop_path, target=target, bests=bests)  #We select the best molecules from the initial population
     for gen in range(generations):
         new_generation=[]
-        for i in range(bests):
-            mutation=mutations(smiles=parents[i], mutation_rate=0.1)
+        parents=[i[0] for i in parents]
+        for i in parents:
+            mutation=mutations(smile=i, mutation_rate=0.1)
             new_generation.append(mutation)
         parents=new_generation
         score=[]
         for i in new_generation:
-            value=calculate_affinity(target, i)
+            value=calculate_affinity(i, target)
             score.append(value)
-        score=score.sort()
         total=zip(parents, score)
+        total=sorted(total, key=lambda x: x[1])
         if compare_ic50(list_score=total, objective_ic50=objective_ic50) is not False:
             best_individual, affinity= compare_ic50(list_score=total, objective_ic50=objective_ic50)
             print("Generation:", gen+1)
@@ -153,6 +166,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
             print("--------")
             break
         else:
+            parents=total[:bests]
             continue
     
 
@@ -173,4 +187,5 @@ def compare_ic50(list_score, objective_ic50):
             return False
     
 
-genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"/Users/rubenvg/Desktop/antiinsecticides/Fungic_insecticides/Topoisomerasa_4(Aeruginosa).csv", objective_ic50=5, generations=100, bests=2)
+genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=5, generations=100, bests=2)
+
