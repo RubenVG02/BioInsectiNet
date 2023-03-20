@@ -88,7 +88,7 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
     valor=0
     while not valor==max_molecules:
         if not db_smiles:
-            generated = generator(nombre_generats=10, img_druglike=False)
+            generated = generator(number_generated=10, img_druglike=False)
             smiles.extend(generated)
         else:
             with open(arx_db, "r") as file:
