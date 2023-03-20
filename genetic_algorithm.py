@@ -22,9 +22,9 @@ def select_parents(initial_population=r"/Users/rubenvg/Desktop/antiinsecticides/
     -target: Sequence of the target in FASTA format.
     
     '''
-    if not initial_population:
+    if initial_population is None:
         initial_population=find_candidates(return_path=True,max_molecules=10,db_smiles=False,target=target,draw_minor=False,generate_qr=False,upload_to_mega=False)
-    if not ".txt" in initial_population:
+    if ".csv" in initial_population:
         with open(initial_population, "r") as file:
                     reader = csv.reader(file)
                     initial_population = [row[0] for row in reader][1:]
@@ -33,16 +33,29 @@ def select_parents(initial_population=r"/Users/rubenvg/Desktop/antiinsecticides/
                         i=i.replace("@", "").replace("/", "")
                         value=calculate_affinity(smile=i, fasta=target)
                         score.append(value)
-
+        total=zip(initial_population, score)
+        total=sorted(total, key=lambda x: x[1])
     if ".txt" in initial_population:
         with open(initial_population, "r") as file:
             score=[]
             for row in file:
+                row=row.replace("@", "").replace("/", "")
                 value=calculate_affinity(smile=row, fasta=target)
                 score.append(value)
-    total=zip(initial_population, score)
-    total=sorted(total, key=lambda x: x[1])
-    parents=total[:bests]
+        total=zip(initial_population, score)
+        total=sorted(total, key=lambda x: x[1])
+    else:  #if the initial population is a list
+        score=[]
+        for i in initial_population:
+            i=i.replace("@", "").replace("/", "")
+            value=calculate_affinity(smile=i, fasta=target)
+            score.append(value)
+        total=zip(initial_population, score)
+        total=sorted(total, key=lambda x: x[1])
+    try:
+        parents=total[:bests]
+    except:
+        parents=total[:len(total)]
     return parents            
   
 
@@ -65,7 +78,10 @@ def childs(parents):
     Function to cross two smile sequences in order to obtain two new molecules. Function used when ic50 value does not improve during the generations.
     
     '''
-    crossover_point=random.randint(0, len(parents[0])-1)
+    if len(parents[0])>len(parents[1]):
+        crossover_point=random.randint(0, len(parents[0])-1)
+    else:
+        crossover_point=random.randint(0, len(parents[1])-1)
     child1 = parents[0][:crossover_point] + parents[1][crossover_point:]
     child2 = parents[1][:crossover_point] + parents[0][crossover_point:]
     print(child1, child2)
@@ -252,4 +268,4 @@ def compare_ic50(list_score, objective_ic50):
             return False
     
 
-genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=20, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados", name_molecule="resultados_2")
+genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=["[C@H](NC(=O)[C@H](C)[C@H](C)C(C)C)NC(=O)Cc1ccccc1"], objective_ic50=20, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados", name_molecule="resultados_2")
