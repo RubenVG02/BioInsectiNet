@@ -1,10 +1,12 @@
 from rdkit import Chem 
 from rdkit.Chem import Draw
 from rdkit.Chem.rdchem import RWMol
+from rdkit.Chem import Draw
 from rdkit.Chem import Descriptors
 from check_affinity import calculate_affinity
 import random   
 import numpy as np
+import pandas as pd
 import csv
 from affinity_with_target_and_generator import find_candidates
 import time
@@ -155,7 +157,7 @@ def file_preparation(file_path="", name_file="", headers=[]):
         writer.writerow(headers)     
 
 
-def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=2, path_save=r"", save_since=20, name_file=""):
+def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=2, path_save=r"", save_since=20, name_file="", name_molecule="result"):
     '''
     Function to find the best molecule to bind to a target protein using a genetic algorithm.
 
@@ -168,6 +170,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
     -path_save: Path where we want to save the best molecule obtained in each generation. By default, it is the current directory.
     -save_since: Since which ic50 value we want to save the best molecule obtained in each generation. By default, it is 20.
     -name_file: Name of the file where we want to save the best molecule obtained depending on best and save_since. By default, it is "resultados.csv".
+    -name_molecule: Name of the best molecule obtained in the last generation. By default, it is "result".
     '''
     parents=select_parents(initial_population=initial_pop_path, target=target, bests=bests)  #We select the best molecules from the initial population
     file_preparation(file_path=path_save, name_file=name_file, headers=["SMILE", "Affinity"])
@@ -177,9 +180,9 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
     for gen in range(generations):
         new_generation=[]
         total=[]
-        if sum_not_improve >= 3: #If the best molecule has not improved for 3 generations, we use the childs function
+        if sum_not_improve >= 5: #If the best molecule has not improved for 3 generations, we use the childs function
             print("Using childs function")
-            parents= childs(parents=parents[:bests], target=target, mutation_rate=0.1)
+            parents= childs(parents=parents[:bests])
             sum_not_improve=0
         else:
             parents=[i[0] for i in parents]
@@ -204,7 +207,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
         with open(path_save, "a") as file:
             for i in total:
                 if i[1] <= save_since:
-                    if i[0] not in file.read():
+                    if i[0] not in pd.read_csv(path_save).SMILE.tolist():
                         file.write(f"{i[0]}, {i[1]}\n")
         if compare_ic50(list_score=total, objective_ic50=objective_ic50) is not False:
             best_individual, affinity= compare_ic50(list_score=total, objective_ic50=objective_ic50)
@@ -214,6 +217,9 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
             print("Best SMILE sequence obtained:", best_individual)
             print("Fitness:", affinity)
             print("--------")
+            molecule = Chem.MolFromSmiles(best_individual)
+            Draw.MolToImageFile(molecule, filename=fr"results_examples/best_molecule_{name_file}.jpg",
+            size=(400, 300))
             break
         else:
             parents=total[:bests]
@@ -246,4 +252,4 @@ def compare_ic50(list_score, objective_ic50):
             return False
     
 
-genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=8, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados")
+genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=20, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados", name_molecule="resultados_2")
