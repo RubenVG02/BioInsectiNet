@@ -182,7 +182,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
         total=[]
         if sum_not_improve >= 5: #If the best molecule has not improved for 3 generations, we use the childs function
             print("Using childs function")
-            parents= childs(parents=parents[:bests])
+            parents= childs(parents=parents[:bests][0])
             sum_not_improve=0
         else:
             parents=[i[0] for i in parents]
