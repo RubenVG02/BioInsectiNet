@@ -215,7 +215,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
             print("--------")
             print("Generation:", gen+1)
             print("Best SMILE sequence obtained:", best_individual)
-            print("Fitness:", affinity)
+            print("IC50 value:", affinity)
             print("--------")
             molecule = Chem.MolFromSmiles(best_individual)
             Draw.MolToImageFile(molecule, filename=fr"results_examples/best_molecule_{name_file}.jpg",
