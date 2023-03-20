@@ -73,7 +73,7 @@ def childs(parents):
         return child1, child2
     else:
         childs() 
-
+    
 def mutations(smile="", mutation_rate=0.1):
 
     '''
@@ -97,7 +97,7 @@ def mutations(smile="", mutation_rate=0.1):
     Chem.Kekulize(mol1)
     mol1=RWMol(mol1)
 
-    
+    error=0 #if the function does not generate valid molecules 10 times, it will select new parents
     
     child_generated=[]
     while len(child_generated)<5:
@@ -134,8 +134,13 @@ def mutations(smile="", mutation_rate=0.1):
             if Chem.MolToSmiles(mol1):
                 if Chem.MolToSmiles(mol1) not in child_generated:
                     if check_druglikeness(Chem.MolToSmiles(mol1)):
-                        
-                        child_generated.append(Chem.MolToSmiles(mol1))        
+                        child_generated.append(Chem.MolToSmiles(mol1))
+                    '''else:
+                        continue
+                else:
+                    error+=1
+                    if error==100:
+                        return "error_parents"'''
     return child_generated
                 
 def file_preparation(file_path="", name_file="", headers=[]):
@@ -172,14 +177,19 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
     for gen in range(generations):
         new_generation=[]
         total=[]
-        if sum_not_improve >= 2: #If the best molecule has not improved for 10 generations, we use the childs function
+        if sum_not_improve >= 3: #If the best molecule has not improved for 3 generations, we use the childs function
             print("Using childs function")
-            parents= childs(parents=parents[:2], target=target, mutation_rate=0.1)
+            parents= childs(parents=parents[:bests], target=target, mutation_rate=0.1)
             sum_not_improve=0
         else:
             parents=[i[0] for i in parents]
         for i in parents:
             mutation=mutations(smile=i, mutation_rate=0.1)
+            '''if "error_parents" in mutation:
+                print("Using childs function")
+                parents= childs(parents=parents[bests:bests+bests], target=target, mutation_rate=0.1)
+                sum_not_improve=0
+                break'''
             new_generation.extend(mutation)
 
         score=[]
@@ -194,9 +204,12 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
         with open(path_save, "a") as file:
             for i in total:
                 if i[1] <= save_since:
-                    file.write(f"{i[0]}, {i[1]}\n")
+                    if i[0] not in file.read():
+                        file.write(f"{i[0]}, {i[1]}\n")
         if compare_ic50(list_score=total, objective_ic50=objective_ic50) is not False:
             best_individual, affinity= compare_ic50(list_score=total, objective_ic50=objective_ic50)
+            print("\n\n\n")
+            print("--------")
             print("Generation:", gen+1)
             print("Best SMILE sequence obtained:", best_individual)
             print("Fitness:", affinity)
@@ -206,11 +219,11 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
             parents=total[:bests]
             if parents[0][1] not in all_bests:
                 all_bests.append(tuple((parents[0][0], parents[0][1])))
-            if parents[0][1]> min([i[1] for i in all_bests]):
+            if parents[0][1]> min([int(i[1]) for i in all_bests]):
                 sum_not_improve+=1
             print("\n\n\n" + "Generation:", gen+1)
             print("Best SMILE sequence obtained:", parents[0][0])
-            print("Fitness:", parents[0][1])
+            print("IC50 value:", parents[0][1])
             print("\n\n\n")
             time.sleep(4)
             continue
@@ -233,4 +246,4 @@ def compare_ic50(list_score, objective_ic50):
             return False
     
 
-genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=20, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados")
+genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path=r"Topoisomerasa_4(Aeruginosa).csv", objective_ic50=8, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados")

@@ -1,3 +1,16 @@
 SMILE,Affinity
-CCC(C)[C@@H](C)NC(=O)c1ccc(NC(=O)c2ccc(C(=N)F)cc2)[nH]1, 10.815938949584961
-CCC(C)[C@@H](C)NC(=O)c1ccc(NC(=O)c2ccc(C(=N)F)cc2)[pH]1, 15.784878730773926
+CC[C@@H](C)C(C)NC(=O)c1cpc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 9.406598091125488
+CC[C@@H](C)C(C)NC(=O)c1cpc(NC(=O)c2ccc(C(N)=O)cc2)o1, 21.772624969482422
+CC[C@@H](C)C(C)NC(=O)c1cnc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 21.84031105041504
+CC[C@@H](C)C(C)NC(=O)c1cpc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 9.406598091125488
+CC[C@@H](C)C(C)NC(=O)c1ccc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 11.269978523254395
+CC[C@@H](C)C(C)NC(=O)c1cpc(NC(=O)c2ccc(C(N)=O)cc2)o1, 21.772624969482422
+CC[C@@H](C)C(C)NC(=O)c1cpc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 9.406598091125488
+CC[C@@H](C)C(C)NC(=O)c1ccc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 11.269978523254395
+CC[C@@H](C)C(C)NC(=O)c1cpc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 9.406598091125488
+CC[C@@H](C)C(C)NC(=O)c1ccc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 11.269978523254395
+CC[C@@H](C)C(C)NC(=O)c1cpc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 9.406598091125488
+CC[C@@H](C)C(C)NC(=O)c1ccc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 11.269978523254395
+CC[C@@H](C)C(C)NC(=O)c1cpc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 9.406598091125488
+CC[C@@H](C)C(C)NC(=O)c1ccc(NC(=O)c2ccc(C(=O)Br)cc2)o1, 11.269978523254395
+CC[C@@H](C)C(C)NC(=O)c1cpc(CC(=O)c2ccc(C(=O)Br)cc2)o1, 24.376943588256836
