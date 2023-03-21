@@ -12,7 +12,7 @@ from affinity_with_target_and_generator import find_candidates
 import time
 
 
-def select_parents(initial_population=r"/Users/rubenvg/Desktop/antiinsecticides/Fungic_insecticides/Topoisomerasa_4(Aeruginosa).csv", target="", bests=2):
+def select_parents(initial_population=r"", target="", bests=2):
 
     '''
     Function to select the parents of the first generations of the genetic algorithm. The parents are the molecules with the best affinity to the target.
@@ -23,7 +23,17 @@ def select_parents(initial_population=r"/Users/rubenvg/Desktop/antiinsecticides/
     
     '''
     if "generate" in initial_population:
-        initial_population=find_candidates(max_molecules=5,db_smiles=True,target=target,draw_minor=False,generate_qr=False,upload_to_mega=False, arx_db=r"generated_molecules\generated_molecules.txt", accepted_value=1000) #Already created txt file of smiles, so db_smiles=True. If not, db_smiles=False
+        find_candidates(max_molecules=5,db_smiles=True,target=target,draw_minor=False,generate_qr=False,upload_to_mega=False, arx_db=r"generated_molecules/generated_molecules.txt", accepted_value=10000, name_file_destination="generated_w_algo") #Already created txt file of smiles, so db_smiles=True. If not, db_smiles=False
+        with open("generated_w_algo.csv", "r") as file:
+                    reader = csv.reader(file)
+                    initial_population = [row[0] for row in reader][1:]
+                    score=[]
+                    for i in initial_population:
+                        i=i.replace("@", "").replace("/", "")
+                        value=calculate_affinity(smile=i, fasta=target)
+                        score.append(value)
+        total=zip(initial_population, score)
+        total=sorted(total, key=lambda x: x[1])
     if ".csv" in initial_population:
         with open(initial_population, "r") as file:
                     reader = csv.reader(file)
@@ -118,7 +128,7 @@ def mutations(smile="", mutation_rate=0.1):
     error=0 #if the function does not generate valid molecules 10 times, it will select new parents
     
     child_generated=[]
-    while len(child_generated)<5:
+    while len(child_generated)<5 and error<200:
         for molecule in copy:
             if random.uniform(0,1) <= mutation_rate:
                 atom_to_remove=np.random.randint(0, len_smile) #random atom to remove from the molecule
@@ -151,15 +161,13 @@ def mutations(smile="", mutation_rate=0.1):
             except Chem.rdchem.KekulizeException:
                 pass
             if Chem.MolToSmiles(mol1):
-                if Chem.MolToSmiles(mol1) not in child_generated:
-                    if check_druglikeness(Chem.MolToSmiles(mol1)):
-                        child_generated.append(Chem.MolToSmiles(mol1))
-                    '''else:
-                        continue
+                if Chem.MolToSmiles(mol1) not in child_generated and check_druglikeness(Chem.MolToSmiles(mol1)):
+                    child_generated.append(Chem.MolToSmiles(mol1))
                 else:
-                    error+=1
-                    if error==100:
-                        return "error_parents"'''
+                    break
+            else:
+                break
+
     return child_generated
                 
 def file_preparation(file_path="", name_file="", headers=[]):
@@ -197,19 +205,14 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
     for gen in range(generations):
         new_generation=[]
         total=[]
-        if sum_not_improve >= 5: #If the best molecule has not improved for 3 generations, we use the childs function
+        if sum_not_improve >= 7: #If the best molecule has not improved for 7 generations, we use the childs function
             print("Using childs function")
-            parents= childs(parents=parents[:bests][0])
+            parents= childs(parents=parents[0][:2])
             sum_not_improve=0
         else:
             parents=[i[0] for i in parents]
         for i in parents:
             mutation=mutations(smile=i, mutation_rate=0.1)
-            '''if "error_parents" in mutation:
-                print("Using childs function")
-                parents= childs(parents=parents[bests:bests+bests], target=target, mutation_rate=0.1)
-                sum_not_improve=0
-                break'''
             new_generation.extend(mutation)
 
         score=[]

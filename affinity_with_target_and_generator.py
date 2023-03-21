@@ -114,7 +114,7 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
     lines = open(fr"{name_file_destination}.csv", "r").read()
     with open(fr"{name_file_destination}.csv", "a", newline="") as file:
         for i in combination:
-            if str(i[1]) not in lines and float(i[1])<100:
+            if str(i[1]) not in lines and float(i[1])<accepted_value:
                 file.write(f"{i[0]},{i[1]},{i[2]}\n")
                 
     if upload_to_mega == True:
