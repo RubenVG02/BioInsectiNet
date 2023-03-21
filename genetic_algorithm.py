@@ -83,21 +83,24 @@ def check_druglikeness(smile=""):
                         #All the conditions that a molecule must meet to be considered drug-like  
             return True
             
-def childs(parents):
+def childs(*parents):
     '''
     Function to cross two smile sequences in order to obtain two new molecules. Function used when ic50 value does not improve during the generations.
     
     '''
-    if len(parents[0])>len(parents[1]):
+    parents1=[]
+    for i in parents:
+        parents1.append(i)
+    if len(parents1[1])>len(parents1[0]):
         crossover_point=random.randint(0, len(parents[0])-1)
     else:
         crossover_point=random.randint(0, len(parents[1])-1)
     child1 = parents[0][:crossover_point] + parents[1][crossover_point:]
     child2 = parents[1][:crossover_point] + parents[0][crossover_point:]
     print(child1, child2)
-    child1= Chem.MolFromSmiles(child1)
-    child2= Chem.MolFromSmiles(child2)
-    if child1 is not None and child2 is not None:
+    child1_mol= Chem.MolFromSmiles(child1)
+    child2_mol= Chem.MolFromSmiles(child2)
+    if child1_mol is not None and child2_mol is not None:
         return child1, child2
     else:
         childs() 
@@ -202,13 +205,15 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
 
     all_bests=[] #We create a list to save the best molecules obtained in each generation in order to compare if we need to use the childs function
     sum_not_improve=0 #We create a variable to count the number of generations in which the best molecule has not improved
+    smiles_saved=[] #list to save the best 2 molecules in case we need to use the childs function
     for gen in range(generations):
         new_generation=[]
         total=[]
-        if sum_not_improve >= 7: #If the best molecule has not improved for 7 generations, we use the childs function
+        if sum_not_improve >= 3: #If the best molecule has not improved for x generations, we use the childs function
             print("Using childs function")
-            parents= childs(parents=parents[0][:2])
-            sum_not_improve=0
+            parents= childs(smiles_saved[0], smiles_saved[1])
+            print("The best molecules have been recombined, the new parents are: ", parents)
+            sum_not_improve=0   
         else:
             parents=[i[0] for i in parents]
         for i in parents:
@@ -242,14 +247,26 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
             size=(400, 300))
             break
         else:
-            parents=total[:bests]
-            if parents[0][1] not in all_bests:
-                all_bests.append(tuple((parents[0][0], parents[0][1])))
-            if parents[0][1]> min([int(i[1]) for i in all_bests]):
-                sum_not_improve+=1
+            parents=total[:bests] 
+            if gen==0:
+                all_bests.append(float(parents[0][1]))
+                minumum_ic50=min(all_bests)          
+            elif gen != 0:
+                minumum_ic50=min(all_bests)
+                if float(parents[0][1])>= minumum_ic50:
+                    smiles_saved=[x[0] for x in parents]
+                    print("Saved smiles:", smiles_saved)
+                    sum_not_improve+=1
+                else:
+                    sum_not_improve=0
+                if parents[0][1] not in all_bests:
+                    all_bests.append(float(parents[0][1]))
+                
             print("\n\n\n" + "Generation:", gen+1)
             print("Best SMILE sequence obtained:", parents[0][0])
             print("IC50 value:", parents[0][1])
+            if float(parents[0][1])>= minumum_ic50 and gen != 0:
+                print("Value not improved")
             print("\n\n\n")
             time.sleep(4)
             continue
@@ -272,4 +289,4 @@ def compare_ic50(list_score, objective_ic50):
             return False
     
 
-genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path="generate", objective_ic50=20, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados", name_molecule="resultados_2")
+genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path="generate", objective_ic50=5, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados", name_molecule="resultados_2")
