@@ -149,3 +149,4 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
         final = ""
     return total_smiles
 
+generator(number_generated=400)
