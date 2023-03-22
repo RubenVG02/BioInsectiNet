@@ -87,6 +87,8 @@ def childs(*parents):
     '''
     Function to cross two smile sequences in order to obtain two new molecules. Function used when ic50 value does not improve during the generations.
     
+    Parameters:
+    -parents: Sequences of the molecules in smile format obtained from the parents generation.
     '''
     parents1=[]
     for i in parents:
@@ -206,10 +208,11 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
     all_bests=[] #We create a list to save the best molecules obtained in each generation in order to compare if we need to use the childs function
     sum_not_improve=0 #We create a variable to count the number of generations in which the best molecule has not improved
     smiles_saved=[] #list to save the best 2 molecules in case we need to use the childs function
+    best_generated=tuple() #We create a tuple to save the best molecule obtained overall
     for gen in range(generations):
         new_generation=[]
         total=[]
-        if sum_not_improve >= 3: #If the best molecule has not improved for x generations, we use the childs function
+        if sum_not_improve >= 6: #If the best molecule has not improved for x generations, we use the childs function
             print("Using childs function")
             parents= childs(smiles_saved[0], smiles_saved[1])
             print("\n\n\n")
@@ -237,13 +240,13 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
                 if i[1] <= save_since:
                     if i[0] not in pd.read_csv(path_save).SMILE.tolist():
                         file.write(f"{i[0]}, {i[1]}\n")
-        if compare_ic50(list_score=total, objective_ic50=objective_ic50) is not False:
+        if compare_ic50(list_score=total, objective_ic50=objective_ic50) is not False or gen==generations-1:
             best_individual, affinity= compare_ic50(list_score=total, objective_ic50=objective_ic50)
             print("\n\n\n")
             print("--------")
             print("Generation:", gen+1)
-            print("Best SMILE sequence obtained:", best_individual)
-            print("IC50 value:", affinity)
+            print("Best SMILE sequence obtained:", best_generated[0]) #best_individual
+            print("IC50 value:", best_generated[1]) #affinity
             print("--------")
             molecule = Chem.MolFromSmiles(best_individual)
             Draw.MolToImageFile(molecule, filename=fr"results_examples/best_molecule_{name_file}.jpg",
@@ -253,7 +256,8 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
             parents=total[:bests] 
             if gen==0:
                 all_bests.append(float(parents[0][1]))
-                minumum_ic50=min(all_bests)          
+                minumum_ic50=min(all_bests)   
+                best_generated=(parents[0][0], parents[0][1])       
             elif gen != 0:
                 minumum_ic50=min(all_bests)
                 if float(parents[0][1])>= minumum_ic50:
@@ -262,12 +266,16 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
                     sum_not_improve+=1
                     
                 else:
+                    if best_generated[1] > parents[0][1]:
+                        best_generated=(parents[0][0], parents[0][1])
                     sum_not_improve=0
                 if parents[0][1] not in all_bests:
                     all_bests.append(float(parents[0][1]))
-                
+            
             print("\n\n\n" + "Generation:", gen+1)
-            print("Best SMILE sequence obtained:", parents[0][0])
+            print("Best SMILE sequence obtained this generation:", parents[0][0])
+            if parents[0][0] != best_generated[0]:
+                print("Best SMILE sequence obtained overall:", best_generated[0])
             print("IC50 value:", parents[0][1])
             if float(parents[0][1])>= minumum_ic50 and gen != 0:
                 print("Value not improved")
