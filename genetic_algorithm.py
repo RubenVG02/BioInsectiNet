@@ -212,7 +212,10 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
         if sum_not_improve >= 3: #If the best molecule has not improved for x generations, we use the childs function
             print("Using childs function")
             parents= childs(smiles_saved[0], smiles_saved[1])
+            print("\n\n\n")
             print("The best molecules have been recombined, the new parents are: ", parents)
+            print("\n\n\n")
+            time.sleep(4)
             sum_not_improve=0   
         else:
             parents=[i[0] for i in parents]
@@ -257,6 +260,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
                     smiles_saved=[x[0] for x in parents]
                     print("Saved smiles:", smiles_saved)
                     sum_not_improve+=1
+                    
                 else:
                     sum_not_improve=0
                 if parents[0][1] not in all_bests:
