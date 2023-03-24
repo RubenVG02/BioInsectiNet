@@ -23,7 +23,7 @@ def select_parents(initial_population=r"", target="", bests=2):
     
     '''
     if "generate" in initial_population:
-        find_candidates(max_molecules=5,db_smiles=True,target=target,draw_minor=False,generate_qr=False,upload_to_mega=False, arx_db=r"generated_molecules/generated_molecules.txt", accepted_value=10000, name_file_destination="generated_w_algo") #Already created txt file of smiles, so db_smiles=True. If not, db_smiles=False
+        find_candidates(max_molecules=5,db_smiles=True,target=target,draw_minor=False,generate_qr=False,upload_to_mega=False, arx_db=r"generated_molecules/generated_molecules.txt", accepted_value=3000, name_file_destination="generated_w_algo") #Already created txt file of smiles, so db_smiles=True. If not, db_smiles=False
         with open("generated_w_algo.csv", "r") as file:
                     reader = csv.reader(file)
                     initial_population = [row[0] for row in reader][1:]
@@ -83,12 +83,13 @@ def check_druglikeness(smile=""):
                         #All the conditions that a molecule must meet to be considered drug-like  
             return True
             
-def childs(*parents):
+def childs(*parents, cant=0):
     '''
     Function to cross two smile sequences in order to obtain two new molecules. Function used when ic50 value does not improve during the generations.
     
     Parameters:
     -parents: Sequences of the molecules in smile format obtained from the parents generation.
+    -cant: Number of times the function has been called without forming childs. If it is called 10 times, it will return the parents without creating new molecules.
     '''
     parents1=[]
     for i in parents:
@@ -102,12 +103,17 @@ def childs(*parents):
     print(child1, child2)
     child1_mol= Chem.MolFromSmiles(child1)
     child2_mol= Chem.MolFromSmiles(child2)
-    if child1_mol is not None and child2_mol is not None:
+    
+    if Chem.MolFromSmiles(child1) is not None and Chem.MolFromSmiles(child2) is not None:
         return child1, child2
     else:
-        childs() 
+        if cant==10:
+            print("No childs were created")
+            return parents
+        childs(*parents)
+        cant+=1
     
-def mutations(smile="", mutation_rate=0.1):
+def mutations(smile="", mutation_rate=0.05):
 
     '''
     Function to mutate a molecule in order to obtain a new molecule with a better affinity to the target.
@@ -117,7 +123,9 @@ def mutations(smile="", mutation_rate=0.1):
     -mutation_rate: Probability of mutation of an atom in the molecule.
 
     '''
+    #atoms=[6, 5, 7, 15, 8, 16, 9, 35, 53, 6]
     atoms=[6, 5, 7, 15, 8, 16, 9, 17, 35, 53]
+
 
     aromatic_atoms=[6, 7, 15, 8, 16]
 
@@ -133,7 +141,7 @@ def mutations(smile="", mutation_rate=0.1):
     error=0 #if the function does not generate valid molecules 10 times, it will select new parents
     
     child_generated=[]
-    while len(child_generated)<5 and error<200:
+    while len(child_generated)<5 and error<400:
         for molecule in copy:
             if random.uniform(0,1) <= mutation_rate:
                 atom_to_remove=np.random.randint(0, len_smile) #random atom to remove from the molecule
@@ -153,7 +161,7 @@ def mutations(smile="", mutation_rate=0.1):
                     mol1.GetAtomWithIdx(atom_to_remove).SetIsAromatic(True)
                 else:
                     if valence_atom==1:
-                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 10)])) 
+                        mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 10)]))
                     elif valence_atom==2:
                         mol1.ReplaceAtom(atom_to_remove, Chem.Atom(atoms[np.random.randint(0, 6)]))  
                     elif valence_atom==3:
@@ -175,19 +183,19 @@ def mutations(smile="", mutation_rate=0.1):
 
     return child_generated
                 
-def file_preparation(file_path="", name_file="", headers=[]):
+def file_preparation(file_path="", headers=[]):
     '''
     Function to create the .csv file to which the obtained data will be added
     
     Parameters:
     -headers: Names of the columns we want to use
     '''
-    with open(f"{name_file}.csv", "w", newline="") as file:
+    with open(f"{file_path}.csv", "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(headers)     
 
 
-def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=2, path_save=r"", save_since=20, name_file="", name_molecule="result"):
+def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, generations=100, bests=2, path_save=r"", save_since=20, name_file="", name_img="result", ):
     '''
     Function to find the best molecule to bind to a target protein using a genetic algorithm.
 
@@ -200,10 +208,10 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
     -path_save: Path where we want to save the best molecule obtained in each generation. By default, it is the current directory.
     -save_since: Since which ic50 value we want to save the best molecule obtained in each generation. By default, it is 20.
     -name_file: Name of the file where we want to save the best molecule obtained depending on best and save_since. By default, it is "resultados.csv".
-    -name_molecule: Name of the best molecule obtained in the last generation. By default, it is "result".
+    -name_img: Name of the best molecule obtained in the last generation to be represented. By default, it is "result".
     '''
     parents=select_parents(initial_population=initial_pop_path, target=target, bests=bests)  #We select the best molecules from the initial population
-    file_preparation(file_path=path_save, name_file=name_file, headers=["SMILE", "Affinity"])
+    file_preparation(file_path=path_save, headers=["SMILE", "Affinity"])
 
     all_bests=[] #We create a list to save the best molecules obtained in each generation in order to compare if we need to use the childs function
     sum_not_improve=0 #We create a variable to count the number of generations in which the best molecule has not improved
@@ -235,10 +243,10 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
             score.append(value)
         total=zip(new_generation, score)
         total=sorted(total, key=lambda x: x[1])
-        with open(path_save, "a") as file:
+        with open(f"{path_save}.csv", "a") as file:
             for i in total:
                 if i[1] <= save_since:
-                    if i[0] not in pd.read_csv(path_save).SMILE.tolist():
+                    if i[0] not in pd.read_csv(f"{path_save}.csv").SMILE.tolist():
                         file.write(f"{i[0]}, {i[1]}\n")
         if compare_ic50(list_score=total, objective_ic50=objective_ic50) is not False or gen==generations-1:
             best_individual, affinity= compare_ic50(list_score=total, objective_ic50=objective_ic50)
@@ -253,7 +261,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
                 print("IC50 value:", affinity)
             print("--------")
             molecule = Chem.MolFromSmiles(best_individual)
-            Draw.MolToImageFile(molecule, filename=fr"results_examples/best_molecule_{name_file}.jpg",
+            Draw.MolToImageFile(molecule, filename=fr"results_examples/best_molecule_{name_img}.jpg",
             size=(400, 300))
             break
         else:
@@ -304,5 +312,8 @@ def compare_ic50(list_score, objective_ic50):
         else:
             return False
     
+target='''MEQNAKFITVYLCTDKLLQIDITASPTAEDACVEICKQIGVGPVARYLFALKLRDTKFFCPDYRTLCENEQYEFRIRFKVPSLSRLRKVDIKAYDYYFNQARQDVMNNKIPDISYDKYKWELVGLGVADMYRVMLETGVDRDNVESDYKKYIPKEVVKHHMFFIKRPIHESLCQISNGTSKHDAWYVKGEYLKQFEEMAPNYLTEEYKALMDEGGNVVAVWMKINPFHKEMPGISFRYDGKKQWSHLCAIDDLCFISVRSDRTIEISRKTGIPSYLKFQSTPMLLSFVSLLDGYYRLMVKWTFNLCKDVPTPSLKRLYMLKCHGPVGGEFSYAKLQEKRNNKAGCFILRESETKYNVYYLDVCTTESLKPKTYKIEKLGNERYYFSKDEKEYKSIPQLVAAYRSTTEGLCLLECIPPSEYDKSQLLLCKLDYMTVEDLSGVNLEEELKSSPPQCIDVKTLQVYKNQKKEGRSGICIVYRTIWKVSKGRKIEVAMKILKQESRDKYIKSFMELAGQWAFLHSNAIVRLYGVTMSSPLAMVMEYLPAGPLDAYLREHKADMKQVDLVEAGSYLATALWYLEEHGVAHGNIRCWKLLVHTHNENTFLVKLADPGLFEYSSSDIHWIAPEYFTNIEMARSSVPADVWAFSTTLWQIFAYGEHPPESSNVDMIKKLYSSGKILPKPPSCPDAIYNLMSDCWDLDPYRRKKPQAIMRDINQILYEVFNSRRAHSYASPFPKLFSKPFSKDYSTSKLSISSMGTEMTDLDYPRVNGTLERDNVSIGGLSTRYSGGSSLEGAWLLDRESKDQYSEEELLTPDISSILTNFNFQQDNASVDSVTTMQAIFELDEDYNVVLQGRIGQGFYGEVYKGSMERGGDIEPQLVAIKKLKTSALASMQDFEREIAIMKTIKHPNIVEIKGVIEEPEISLVMEYVQHGSLQSYLKIHKESLEDGNLLKFSLDVAKGMDYLGTKNIVHRDLAARNILVANEHHVKISDFGLAQFIGNSGYYKMKTNRDLPIKWYAPESLRDGKFSPQSDVWSYGVTLYEMFSRGEDPILPACTNHQDQQALLTALENGARLPCPSSCPQELYIKLMCSCWQAEPYQRPKFSELVKCIEELMVHYELQPAF'''
 
-genetic_algorithm(target="MSFVHLQVHSGYSLLNSAAAVEELVSEADRLGYASLALTDDHVMYGAIQFYKACKARGINPIIGLTASVFTDDSELEAYPLVLLAKSNTGYQNLLKISSVLQSKSKGGLKPKWLHSYREGIIAITPGEKGYIETLLEGGLFEQAAQASLEFQSIFGKGAFYFSYQPFKGNQVLSEQILKLSEETGIPVTATGDVHYIRKEDKAAYRCLKAIKAGEKLTDAPAEDLPDLDLKPLEEMQNIYREHPEALQASVEIAEQCRVDVSLGQTRLPSFPTPDGTSADDYLTDICMEGLRSRFGKPDERYLRRLQYELDVIKRMKFSDYFLIVWDFMKHAHEKGIVTGPGRGSAAGSLVAYVLYITDVDPIKHHLLFERFLNPERVSMPDIDIDFPDTRRDEVIQYVQQKYGAMHVAQIITFGTLAAKAALRDVGRVFGVSPKEADQLAKLIPSRPGMTLDEARQQSPQLDKRLRESSLLQQVYSIARKIEGLPRHASTHAAGVVLSEEPLTDVVPLQEGHEGIYLTQYAMDHLEDLGLLKMDFLGLRNLTLIESITSMIEKEENIKIDLSSISYSDDKTFSLLSKGDTTGIFQLESAGMRSVLKRLKPSGLEDIVAVNALYRPGPMENIPLFIDRKHGRAPVHYPHEDLRSILEDTYGVIVYQEQIMMIASRMAGFSLGEADLLRRAVSKKKKEILDRERSHFVEGCLKKEYSVDTANEVYDLIVKFANYGFNRSHAVAYSMIGCQLAYLKAHYPLYFMCGLLTSVIGNEDKISQYLYEAKGSGIRILPPSVNKSSFPFTVENGSVRYSLRAIKSVGVSAVKDIYKARKEKPFEDLFDFCFRVPSKSVNRKMLEALIFSGAMDEFGQNRATLLASIDVALEHAELFAADDDQMGLFLDESFSIKPKYVETEELPLVDLLAFEKETLGIYFSNHPLSAFRKQLTAQGAVSILQAQRAVKRQLSLGVLLSKIKTIRTKTGQNMAFLTLSDETGEMEAVVFPEQFRQLSPVLREGALLFTAGKCEVRQDKIQFIMSRAELLEDMDAEKAPSVYIKIESSQHSQEILAKIKRILLEHKGETGVYLYYERQKQTIKLPESFHINADHQVLYRLKELLGQKNVVLKQW", initial_pop_path="generate", objective_ic50=5, generations=100, bests=2, path_save=r"resultados.csv", save_since=40, name_file="resultados", name_molecule="resultados_2")
+genetic_algorithm(target=target, initial_pop_path="generate", objective_ic50=25, generations=100, bests=2, path_save=r"resultados_langosta_inicio", save_since=100, name_file="langosta_mejor", name_img="resultados_langosta")
+
+
