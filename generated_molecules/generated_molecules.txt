@@ -104,3 +104,8 @@ CC(=O)NC(C)C(=S)Nc1ccc2c(c1)OCCO2
 CCNC(=O)N/N=C/c1ccc([N+](=O)[O-])cc1
 N=C(NCCc1ccccc1)c1ccccc1CO
 CCN(CC)c1ccc(NC(=O)c2ccc(C)cc2F)c(C)c1
+O=C(c1ccccc1)c1ccccc1CC
+CCOC(=O)c1ccc(N/N=C/c2ccccc2F)cc1
+O=C(c1ccccc1)c1ccc(C(=O)C2CCCC2)cc1
+CC(C)C(=O)OCC(C)C(C)C
+CC(C)C(=O)NCC(=O)NCCCCCCCCCCCCCCC

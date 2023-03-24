@@ -2,7 +2,7 @@ from rdkit import Chem
 from rdkit.Chem import Draw
 
 
-smile = "C=C(Cp1nnnc1[SiH2]OC(=O)c1ccc(P)cc1Cl)O[SiH2][SiH3]"
+smile = "N=C(Bc1pc2ccccc2s1)c1ccccc1CC(=O)B1CCCCC1"
 
 FILENAME="moleule5.png"
 

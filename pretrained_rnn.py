@@ -18,8 +18,8 @@ import time
 
 
 
-def generator(path_model=r"modelo_rnn_insectos.hdf5", path_data=r"insectos.txt",
-              number_generated=100, img_druglike=True, path_destination_molecules=r"generated_molecules/generated_molecules.txt"):
+def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\modelo_rnn_insectos.hdf5", path_data=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\insectos.txt",
+              number_generated=100, img_druglike=True, path_destination_molecules=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\generated_molecules/generated_molecules.txt"):
     '''
         Parameters:
         -path_model: Path where the already trained model is located
