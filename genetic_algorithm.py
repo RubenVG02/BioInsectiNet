@@ -113,7 +113,7 @@ def childs(*parents, cant=0):
         childs(*parents)
         cant+=1
     
-def mutations(smile="", mutation_rate=0.2):
+def mutations(smile="", mutation_rate=0.1):
 
     '''
     Function to mutate a molecule in order to obtain a new molecule with a better affinity to the target.
@@ -141,7 +141,7 @@ def mutations(smile="", mutation_rate=0.2):
     error=0 #if the function does not generate valid molecules 10 times, it will select new parents
     
     child_generated=[]
-    while len(child_generated)<5 and error<400:
+    while len(child_generated)<5 and error<4000:
         for molecule in copy:
             if random.uniform(0,1) <= mutation_rate:
                 atom_to_remove=np.random.randint(0, len_smile) #random atom to remove from the molecule
@@ -216,7 +216,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
         writer = csv.writer(file)
         best_parent= min(parents, key=lambda x: x[1]) 
         writer.writerow([best_parent[0], best_parent[1]]) #We save the best parent to compare at the end
-        Draw.MolToImageFile(Chem.MolFromSmiles(best_parent[0]), filename=fr"results_presentation/langosta/best_molecule_{name_img_initial}.jpg",
+        Draw.MolToImageFile(Chem.MolFromSmiles(best_parent[0]), filename=fr"results_presentation/bombix_mori/best_molecule_{name_img_initial}.jpg",
             size=(400, 300))
     file_preparation(file_path=path_save, headers=["SMILE", "Affinity"])
 
@@ -271,7 +271,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
                 print("IC50 value:", affinity)
             print("--------")
             molecule = Chem.MolFromSmiles(best_individual)
-            Draw.MolToImageFile(molecule, filename=fr"results_presentation/langosta/best_molecule_{name_img}.jpg",
+            Draw.MolToImageFile(molecule, filename=fr"results_presentation/bombix_mori/best_molecule_{name_img}.jpg",
             size=(400, 300))
             with open(f"{name_file_best}.csv","a") as file:
                 file_preparation(file_path=f"{name_file_best}", headers=["SMILE", "Affinity"])
@@ -326,8 +326,8 @@ def compare_ic50(list_score, objective_ic50):
         else:
             return False
     
-target="MTQKWLFSTNHKDIGTLYFMFGAWAGMVGTSMSMIIRAELGQPGTMINDDQLYNVIITAHAFVMIFFMVMPIMIGGFGNWLVPLMIGAPDMAFPRMNNMSFWLLPPSLTLLLMSSVVDNGAGTGWTVYPPLASVIAHSGASVDLAIFSLHLAGVSSILGAINFITTAINMRSNNMTLDQTPLFVWSVAITALLLLLSLPVLAGAITMLLTDRNLNTSFFDPAGGGDPILYQHLFWFFGHPEVYILILPGFGIISHIVCQESGKIESFGTIGMIYAMLSIGLMGFIVWAHHMFTVGMDVDTRAYFTSATMIIAVPTGIKVFSWMATLYGTKFKFNPPLLWALGFIFLFTMGGLTGLVLANSSLDIVLHDTYYVVAHFHYVLSMGAVFAIMGGIIQWYPLFTGLTMNSKWLKIQFTIMFIGVNLTFFPQHFLGLAGMPRRYSDYPDAYTSWNVISSIGSTISITGIIMFILIMWESMIKQRNVFIWTNMSSSTEWLQNNPPAEHSYSELPLINL"
+target="MDGNSTSDIVILSGNSHPELADLIANRLGVRKGGCSVYHKTNRETIVEIADSIRGKNIYIIQTGTKDVNNNIMELLIMAYACKTSSASSIVGVIPYLPYSKQCKMRKRGCIVSKLLAQMMCKSGLSHIITMDLHQKEIQGFFDCPVDNLRASPFLLQYIQESIPDYRNSVIVARNPGSAKKATSYAERLRLAIAVIHGEQKEAESDEVDGRYSPPCIPRSRTMDVSVGVPAHPAKEKPPINVVGDVGGRIAIMVDDMIDDVQSFVAAAEVLKECGAYKIYVLATHGLLSSDAPRLIEDSPIDEVVVTNTVPHELQKMQCNKIKTIDISILISEAIRRIHNKESMSYLFKNVTLED"
 
-genetic_algorithm(target=target, initial_pop_path="generate", objective_ic50=10, generations=100, bests=2, path_save=r"results_presentation\langosta/resultados_langosta", save_since=100, name_file_best="results_presentation\langosta/langosta_mejor", name_img="langosta_mejor", name_img_initial="langosta_inicial", initial="results_presentation\langosta/langosta_inicial")
+genetic_algorithm(target=target, initial_pop_path=["Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO)C[C@H]1O"], objective_ic50=20, generations=100, bests=2, path_save=r"results_presentation\bombix_mori/resultados_bombix_mori", save_since=100, name_file_best="results_presentation\bombix_mori/bombix_mori_mejor", name_img="bombix_mori_mejor", name_img_initial="bombix_mori_inicial", initial=r"results_presentation\bombix_mori/bombix_mori_inicial")
 
 
