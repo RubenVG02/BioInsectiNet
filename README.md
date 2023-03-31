@@ -1,7 +1,7 @@
-#Fungic Bioinsecticide Discovery
+# Fungic Bioinsecticide Discovery
 
 
-# Usage
+## Usage
 
 First of all, in order to make a good prediction, the target proteins must be in FASTA (aminoacids) sequence.
 
@@ -9,18 +9,18 @@ Then, you need 2 neural networks, one for the toxicity prediction and another on
 
 To train your models you need data, which can be obtained from different databases such as Chembl, Pubchem, etc. You can also use the ones I have used, which is "insect.csv".
 
-#CNN USAGE (Affinity)
+###CNN USAGE (Affinity)###
 In order to use the CNN, use "check_affinity.py". You need to specify the path to the model, the path to the data and the path to the target protein. The program will return the toxicity of the designed bioinsecticides using the calculate_affinity function.
 
-#RNN USAGE (Generation)
+###RNN USAGE (Generation)###
 
 In order to use the RNN, use "pretrained_rnn.py". You need to specify the path to the model, the path to the data and the path to the target protein. The program will return the designed bioinsecticides using the generate function.
 
-#COMBINATION
+###COMBINATION###
 
 In order to use the combination of both models, use "affinity_with_target_and_generator.py". You need to specify the path to the model, the path to the data and the path to the target protein. The program will return the designed bioinsecticides using the generate function. You can also specify the toxicity limit of the designed bioinsecticides using the calculate_affinity function. The program will return the designed bioinsecticides that have a toxicity lower than the limit. You can also specify a path of generated molecules to check.
 
-#GENETIC ALGORITHM
+###GENETIC ALGORITHM###
 
 In order to use the genetic algorithm, use "genetic_algorithm.py". You can use 3 paths:
 - Smile sequences using lists [smile1, smile2, smile3, ...]
