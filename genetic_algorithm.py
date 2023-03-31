@@ -101,8 +101,6 @@ def childs(*parents, cant=0):
     child1 = parents[0][:crossover_point] + parents[1][crossover_point:]
     child2 = parents[1][:crossover_point] + parents[0][crossover_point:]
     print(child1, child2)
-    child1_mol= Chem.MolFromSmiles(child1)
-    child2_mol= Chem.MolFromSmiles(child2)
     
     if Chem.MolFromSmiles(child1) is not None and Chem.MolFromSmiles(child2) is not None:
         return child1, child2
@@ -326,8 +324,8 @@ def compare_ic50(list_score, objective_ic50):
         else:
             return False
     
-target="MDGNSTSDIVILSGNSHPELADLIANRLGVRKGGCSVYHKTNRETIVEIADSIRGKNIYIIQTGTKDVNNNIMELLIMAYACKTSSASSIVGVIPYLPYSKQCKMRKRGCIVSKLLAQMMCKSGLSHIITMDLHQKEIQGFFDCPVDNLRASPFLLQYIQESIPDYRNSVIVARNPGSAKKATSYAERLRLAIAVIHGEQKEAESDEVDGRYSPPCIPRSRTMDVSVGVPAHPAKEKPPINVVGDVGGRIAIMVDDMIDDVQSFVAAAEVLKECGAYKIYVLATHGLLSSDAPRLIEDSPIDEVVVTNTVPHELQKMQCNKIKTIDISILISEAIRRIHNKESMSYLFKNVTLED"
+'''target="MDGNSTSDIVILSGNSHPELADLIANRLGVRKGGCSVYHKTNRETIVEIADSIRGKNIYIIQTGTKDVNNNIMELLIMAYACKTSSASSIVGVIPYLPYSKQCKMRKRGCIVSKLLAQMMCKSGLSHIITMDLHQKEIQGFFDCPVDNLRASPFLLQYIQESIPDYRNSVIVARNPGSAKKATSYAERLRLAIAVIHGEQKEAESDEVDGRYSPPCIPRSRTMDVSVGVPAHPAKEKPPINVVGDVGGRIAIMVDDMIDDVQSFVAAAEVLKECGAYKIYVLATHGLLSSDAPRLIEDSPIDEVVVTNTVPHELQKMQCNKIKTIDISILISEAIRRIHNKESMSYLFKNVTLED"
 
-genetic_algorithm(target=target, initial_pop_path=["Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO)C[C@H]1O"], objective_ic50=20, generations=100, bests=2, path_save=r"results_presentation\bombix_mori/resultados_bombix_mori", save_since=100, name_file_best="results_presentation\bombix_mori/bombix_mori_mejor", name_img="bombix_mori_mejor", name_img_initial="bombix_mori_inicial", initial=r"results_presentation\bombix_mori/bombix_mori_inicial")
+genetic_algorithm(target=target, initial_pop_path=["Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO)C[C@H]1O"], objective_ic50=20, generations=100, bests=2, path_save=r"results_presentation\bombix_mori/resultados_bombix_mori", save_since=100, name_file_best="results_presentation\bombix_mori/bombix_mori_mejor", name_img="bombix_mori_mejor", name_img_initial="bombix_mori_inicial", initial=r"results_presentation\bombix_mori/bombix_mori_inicial")'''
 
 
