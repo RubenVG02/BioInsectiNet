@@ -29,6 +29,10 @@ In order to use the genetic algorithm, use "genetic_algorithm.py". You can use 3
 
 Then, you need to specify your model path, the number of generations, and destination path. The program will return the best smile sequence of the last generation.
 
+### 3D Structure ###
+
+In order to obtain the 3D structure of the designed bioinsecticides, use "3d_repr.py". You need to specify the path to the model, the path to the data and the path to the target protein. The program will return the designed bioinsecticides using the generate function. You can also specify the toxicity limit of the designed bioinsecticides using the calculate_affinity function. The program will return the designed bioinsecticides that have a toxicity lower than the limit. You can also specify a path of generated molecules to check. You will obtain an sdf file with the 3D structure of the designed bioinsecticides.
+
 
 
 ## Installation
@@ -40,13 +44,9 @@ To use this project, you need to have Python 3.7 or higher installed. Then, you 
 - Pandas
 - Matplotlib
 
-
-
-
 ## Authors
 
 - [@RubenVG02](https://www.github.com/RubenVG02)
-
 
 ## Features
 
@@ -56,5 +56,26 @@ To use this project, you need to have Python 3.7 or higher installed. Then, you 
 - Obtaining csv files and screenshots of the results
 - Obtaining the 3D structure of the designed bioinsecticides
 - Fast and easy to use
+
+## Future Improvements
+
+- Add more databases to the CNN
+- Add more databases to the RNN
+- More complexity to the GA
+- Directly obtain the 3D structure of the designed bioinsecticides
+
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+
+## Acknowledgements
+
+- [Keras](https://keras.io/)
+- [Tensorflow](https://www.tensorflow.org/)
+- [Numpy](https://numpy.org/)
+- [Pandas](https://pandas.pydata.org/)
+
+
 
 
