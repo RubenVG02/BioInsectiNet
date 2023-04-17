@@ -29,7 +29,7 @@ In order to use the genetic algorithm, use "genetic_algorithm.py". You can use 3
 
 Then, you need to specify your model path, the number of generations, and destination path. The program will return the best smile sequence of the last generation.
 
-### 3D Structure ###
+### 3D STRUCTURE ###
 
 In order to obtain the 3D structure of the designed bioinsecticides, use "3d_repr.py". You need to specify the path to the model, the path to the data and the path to the target protein. The program will return the designed bioinsecticides using the generate function. You can also specify the toxicity limit of the designed bioinsecticides using the calculate_affinity function. The program will return the designed bioinsecticides that have a toxicity lower than the limit. You can also specify a path of generated molecules to check. You will obtain an sdf file with the 3D structure of the designed bioinsecticides.
 
