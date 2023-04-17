@@ -23,18 +23,26 @@ target = "MTSVMSHEFQLATAETWPNPWPMYRALRDHDPVHHVVPPQRPEYDYYVLSRHADVWSAARDHQTFSSAQG
 
 
 def create_file(name_file, headers=["smiles", "IC50", "score"]):
-    '''
-    Function to create the .csv file to which the obtained data will be added
+    """
+    Creates a .csv file and writes the column headers into it.
     
     Parameters:
-    -headers: Names of the columns we want to use
-    '''
+        name_file: The name of the file to be created.
+        headers: The column headers to be written to the file.
+    """
     with open(f"{name_file}.csv", "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(headers)
 
 def upload_mega(name_file):
-    #Function to upload the .csv file to Mega
+    '''
+    Function to upload a file to Mega.nz and obtain a download link to be able to download the file later.
+
+    Parameters:
+    -name_file: Name of the file to be uploaded. It must be in the same folder as the script.
+    
+    '''
+
     mail="joneltmp+dilzy@gmail.com"
     contra=base64.b64decode("J2NudncnZDkwY253cTljcG53cW5lamR3cHFjbm1qZXcnYzlu")
     contra=contra.decode("UTF-8")
@@ -46,13 +54,14 @@ def upload_mega(name_file):
     return link
     
 def draw_best(ic50_menor, ic50, smiles, name_file):
-    #Function to draw the best molecule obtained
     '''
-        Parameters:
-        -ic50_menor: Lowest value of IC50 obtained
-        -ic50: List of IC50 values obtained
-        -smiles: List of smiles obtained
-        -name_file: Name of the file where the image will be saved. Will be saved as best_molecule_{name_file}.jpg in the results_examples folder
+    Function to draw the best molecule obtained by the target of interest. The image will be saved in the results_examples folder with the name best_molecule_{name_file}.jpg
+        
+    Parameters:
+        -ic50_menor: Lowest value of IC50 obtained by the target of interest
+        -ic50: List of IC50 values obtained by the target of interest
+        -smiles: List of smiles obtained 
+        -name_file: Name of the file where the image will be saved. Will be saved as best_molecule_{name_file}.jpg in the results_examples folder.
     '''
     index=ic50.index(ic50_menor)
     best=smiles[index]
@@ -66,20 +75,20 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
     complexity of its synthesis
     
     Parameters:
-    -target: Target sequence that we will use to look at the affinity
-    -name_file_destination: name of the csv file where the obtained results will be saved (Columns: smiles, IC50, score)
-    -upload_to_mega: upload the generated csv to Mega.nz and obtain a download link to be able to download the file later. By default, True
-    -draw_minor: Get a .jpg file of the smile molecule with better affinity. By default, True
-    -db_smiles: Analyze affinity from a .txt file with SMILES. Default, True
-    -arx_db: Link of the db archive with SMILES. Requires db_smiles=True
-    -accepted_value: Value from which we can consider a molecule as valid expressed in nM. Default value, 100.
-    -max_molecules: Maximum amount of molecules you want in your destination file, based on the accepted_value parameter. By default, 5.
-    -generate_qr: To generate a qr file of your mega link. Requires upload_to_mega=True. The QR will be saved as qr_{arx_name}.
+    target: Target sequence that we will use to look at the affinity
+    name_file_destination: name of the csv file where the obtained results will be saved (Columns: smiles, IC50, score)
+    upload_to_mega: upload the generated csv to Mega.nz and obtain a download link to be able to download the file later. By default, True
+    draw_minor: Get a .jpg file of the smile molecule with better affinity. By default, True
+    db_smiles: Analyze affinity from a .txt file with SMILES. Default, True
+    arx_db: Link of the db archive with SMILES. Requires db_smiles=True
+    accepted_value: Value from which we can consider a molecule as valid expressed in nM. Default value, 100.
+    max_molecules: Maximum amount of molecules you want in your destination file, based on the accepted_value parameter. By default, 5.
+    generate_qr: To generate a qr file of your mega link. Requires upload_to_mega=True. The QR will be saved as qr_{arx_name}.
     
     Returns:
-    -File .csv with the results obtained with your target of interest.
-    -Image in .jpg format of the best molecule obtained by your target, if draw_minor=True
-    -Link to Mega from your .csv if upload_to_mega=Truee
+    File .csv with the results obtained with your target of interest.
+    Image in .jpg format of the best molecule obtained by your target, if draw_minor=True
+    Link to Mega from your .csv if upload_to_mega=True
     '''
     ic50 = []
     smiles = []
