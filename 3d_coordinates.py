@@ -1,5 +1,4 @@
 import requests
-import subprocess
 
 def obtain_sdf(smile="", name="molecule_sdf"):
     """
