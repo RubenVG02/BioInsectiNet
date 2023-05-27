@@ -2,7 +2,7 @@
 '''
 This script is used to convert a 3D molecule from SDF format to STL format.
 
-In order to run this script, you need to install PyMOl first.
+In order to run this script, you need to install PyMOl first, and can't be run directly through terminal, but need to be run through PyMol.
 
 You can change the output format by changing the extension of the output file in cmd.save().
 '''
