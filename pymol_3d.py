@@ -40,7 +40,7 @@ def obtain_sdf(smile="", name="molecule_sdf"):
 
 def get_pymol(smile="", name="molecule_sdf"):
     if not name in os.listdir():
-        obtain_sdf(smile=smile, name=name) # Change the smile and output name here
+        obtain_sdf(smile=smile, name=name)
     cmd.load(f"{name}.sdf")
     cmd.save('molecule_stl.stl')
     cmd.quit()
