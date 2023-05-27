@@ -7,5 +7,5 @@ pandas==1.5.2
 qrcode==7.3.1
 rdkit==2022.9.2
 Requests==2.29.0
-tensorflow==2.11.0
+tensorflow==2.12.0
 tensorflow_datasets==4.7.0
