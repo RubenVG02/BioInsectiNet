@@ -32,6 +32,7 @@ Then, you need to specify your model path, the number of generations, and destin
 ### 3D STRUCTURE ###
 
 In order to obtain the 3D structure of the designed bioinsecticides, use "3d_repr.py". You need to specify the path to the model, the path to the data and the path to the target protein. The program will return the designed bioinsecticides using the generate function. You can also specify the toxicity limit of the designed bioinsecticides using the calculate_affinity function. The program will return the designed bioinsecticides that have a toxicity lower than the limit. You can also specify a path of generated molecules to check. You will obtain an sdf file with the 3D structure of the designed bioinsecticides.
+Then, using PyMOL, you can obtain the 3D structure of the designed bioinsecticides in different formats (sdf, pdb, etc.) by using the "pymol_3d.py" script directly in PyMOL.
 
 
 
@@ -54,8 +55,9 @@ To use this project, you need to have Python 3.7 or higher installed. Then, you 
 - Improving the structure of previously designed bioinsecticides based on the target protein
 - Predicting the toxicity of the designed bioinsecticides
 - Obtaining csv files and screenshots of the results
-- Obtaining the 3D structure of the designed bioinsecticides
+- Obtaining the 3D structure of the designed bioinsecticides in different formats (sdf, pdb, etc.)
 - Fast and easy to use
+
 
 ## Future Improvements
 
