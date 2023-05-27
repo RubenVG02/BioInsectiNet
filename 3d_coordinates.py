@@ -1,4 +1,5 @@
 import requests
+import subprocess
 
 def obtain_sdf(smile="", name="molecule_sdf"):
     """
@@ -19,4 +20,3 @@ def obtain_sdf(smile="", name="molecule_sdf"):
             f.write(sdf_file)
         print("SDF file created")
     
-obtain_sdf(smile="C=CCNc1nnc(SCc2ccccc2C)cc1OC(=O)CS")
