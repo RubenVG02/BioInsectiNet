@@ -12,7 +12,6 @@ from keras.regularizers import l2
 
 arx = pd.read_csv(r"", sep=",")
 
-
 # maximum value that I want my smiles to have, they will be used to train the model
 max_smiles = 130
 elements_smiles = ['N', '2', 'H', 'K', 'Z', 'O', 'M', ']', 'c', 'l', '=', '6', ')', 'F', 'o', 'r', '7', 'P','g', '5', 't', '8', '9', '1', '0', 'I', '4', '[', 'i', 'a', 'C', '-', 'n', '#', 'L', '(', 'S', 'B', 'A', 'T', 's', '3', '+', 'e']
