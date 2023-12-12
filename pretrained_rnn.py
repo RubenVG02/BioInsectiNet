@@ -103,7 +103,7 @@ def generator(path_model=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\mode
     model.load_weights(f"{path_model}")
     model.compile(loss='categorical_crossentropy', optimizer='adam')
 
-###GENERATION OF MOLECULES###    
+###GENERATION OF MOLECULES###
     seq_length = 137
     pattern=create_seed(max_molecules=seq_length)
     print("\"", ''.join([int_2_elements[value[0]] for value in pattern]), "\"")
