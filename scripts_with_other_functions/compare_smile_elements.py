@@ -17,5 +17,4 @@ def compare(data1=r"", data2=r""):
     
     diferència=list(set(data1)-set(data2))
     return diferència
-
 compare()
