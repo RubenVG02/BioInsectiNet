@@ -70,7 +70,6 @@ model = tf.keras.models.Sequential([CuDNNLSTM(128, input_shape=(137, 1), return_
 '''model.load_weights(
     r"")'''
 #This is used to continue training a model that has already been trained
-
 model.compile(optimizer="adam",
                loss="categorical_crossentropy", metrics=["accuracy"])
 #Different loss functions can be used, but I reccomend categorical_crossentropy
