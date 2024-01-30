@@ -31,8 +31,8 @@ Then, you need to specify your model path, the number of generations, and the de
 
 ### 3D STRUCTURE ###
 
-To obtain the 3D structure of the designed bioinsecticides, use `3d_repr.py`. You need to specify the path to the model, the path to the data, and the path to the target protein. The program will return the designed bioinsecticides using the generate function. You can also specify the toxicity limit of the designed bioinsecticides using the calculate_affinity function. The program will return the designed bioinsecticides with a lower toxicity than the limit. You can also specify a path of generated molecules to check. You will obtain an sdf file with the 3D structure of the designed bioinsecticides.
-Then, using PyMOL, you can obtain the 3D structure of the designed bioinsecticides in different formats (sdf, pdb, etc.) by using the "pymol_3d.py" script directly in PyMOL.
+To obtain the 3D structure of the designed bioinsecticides, use `3d_repr.py`. You need to specify the path to the model, the path to the data, and the path to the target protein. The program will return the designed bioinsecticides using the generate function. You can also specify the toxicity limit of the designed bioinsecticides using the calculate_affinity function. The program will return the designed bioinsecticides with a lower toxicity than the limit. You can also specify a path of generated molecules to check. You will obtain an SDF file with the 3D structure of the designed bioinsecticides.
+Then, using PyMOL, you can obtain the 3D structure of the designed bioinsecticides in different formats (SDF, PDB, etc.) by using the "pymol_3d.py" script directly in PyMOL.
 
 
 
@@ -61,7 +61,7 @@ pip install requirements.txt
 - Improving the structure of previously designed bioinsecticides based on the target protein
 - Predicting the toxicity of the designed bioinsecticides
 - Obtaining CSV files and screenshots of the results
-- Obtaining the 3D structure of the designed bioinsecticides in different formats (sdf, pdb, etc.)
+- Obtaining the 3D structure of the designed bioinsecticides in different formats (SFD, PDB, etc.)
 - Fast and easy to use
 
 
