@@ -45,6 +45,12 @@ To use this project, you need to have Python 3.7 or higher installed. Then, you 
 - Pandas
 - Matplotlib
 
+To install the required libraries, use:
+
+```bash
+pip install requirements.txt
+```
+
 ## Authors
 
 - [@RubenVG02](https://www.github.com/RubenVG02)
