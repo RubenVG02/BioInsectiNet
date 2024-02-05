@@ -143,7 +143,7 @@ def model_cnn():
                    metrics={'output': r2_score})
     
     # To do checkpoints
-    save_model_path = "cnn_model.hdf5"
+    save_model_path = "models/cnn_model.hdf5"
     checkpoint = ModelCheckpoint(save_model_path,
                                  monitor='val_loss',
                                  verbose=1,

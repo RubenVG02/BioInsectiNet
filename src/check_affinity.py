@@ -7,7 +7,7 @@ from keras.regularizers import l2
 
 
 
-def calculate_affinity(path_csv=r"C:\Users\ASUS\Desktop\github22\dasdsd\CSV\500k_dades.csv", smile="", fasta="", path_model=r"cnn_model.hdf5"):
+def calculate_affinity(path_csv=r"", smile="", fasta="", path_model=r""):
     #path = pd.read_csv(f"{path_csv}", sep=",")
 
     # maximum value that I want my smileys to have, they will be used to train the model
@@ -105,4 +105,3 @@ def calculate_affinity(path_csv=r"C:\Users\ASUS\Desktop\github22\dasdsd\CSV\500k
     return predict
 
 
-# mesurador_afinitat(smile="CSc1ccccc1-c1ccccc1-c1nnnn1-c1ccccc1F",fasta = "MGGDLVLGLGALRRRKRLLEQEKSLAGWALVLAGTGIGLMVLHAEMLWFGGCSWALYLFLVKCTISISTFLLLCLIVAFHAKEVQLFMTDNGLRDWRVALTGRQAAQIVLELVVCGLHPAPVRGPPCVQDLGAPLTSPQPWPGFLGQGEALLSLAMLLRLYLVPRAVLLRSGVLLNASYRSIGALNQVRFRHWFVAKLYMNTHPGRLLLGLTLGLWLTTAWVLSVAERQAVNATGHLSDTLWLIPITFLTIGYGDVVPGTMWGKIVCLCTGVMGVCCTALLVAVVARKLEFNKAEKHVHNFMMDIQYTKEMKESAARVLQEAWMFYKHTRRKESHAARRHQRKLLAAINAFRQVRLKHRKLREQVNSMVDISKMHMILYDLQQNLSSSHRALEKQIDTLAGKLDALTELLSTALGPRQLPEPSQQSK")

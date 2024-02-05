@@ -4,7 +4,7 @@ from rdkit.Chem import Draw
 
 smile = "Nc1ccnc2c1ccn2[C@@H]1O[C@H](CO)C[C@H]1O"
 
-FILENAME="moleule6.png"
+FILENAME=""
 
 molecule = Chem.MolFromSmiles(smile)
 Draw.MolToImageFile(molecule, filename=FILENAME,

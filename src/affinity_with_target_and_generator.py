@@ -69,7 +69,7 @@ def draw_best(ic50_menor, ic50, smiles, name_file):
     Draw.MolToImageFile(molecule, filename=fr"results_examples/best_molecule_{name_file}.jpg",
             size=(400, 300))
 
-def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)", upload_to_mega=True, draw_minor=True, max_molecules=5, db_smiles=True, arx_db=r"generated_molecules\generated_molecules.txt", accepted_value=1000, generate_qr=True):
+def find_candidates(target=target, name_file_destination="", upload_to_mega=True, draw_minor=True, max_molecules=5, db_smiles=True, arx_db=r"examples/generated_molecules\generated_molecules.txt", accepted_value=1000, generate_qr=True):
     '''
     Function to generate molecules using an RNN model, and compare their affinity with a specific target, in addition to obtaining a representative score in the
     complexity of its synthesis
@@ -110,7 +110,7 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
                 smiles.append(i)
             i = i.replace("@", "").replace("/", "")
             try:
-                ic50_prediction = calculate_affinity(smile=i, fasta=target, path_model=r"cnn_model.hdf5")
+                ic50_prediction = calculate_affinity(smile=i, fasta=target, path_model=r"")
                 if ic50_prediction<accepted_value:
                     valor+=1
                 ic50.append(float(ic50_prediction))
@@ -138,7 +138,6 @@ def find_candidates(target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)
         draw_best(ic50_menor,ic50,smiles, name_file_destination)
             
 
-#find_candidates(db_smiles=True, arx_db=r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\generated_molecules\generated_molecules.txt", target=target, name_file_destination="Alfa_Pol3 (B.Subtilis)", upload_to_mega=True, draw_minor=True, max_molecules=5, accepted_value=1000, generate_qr=True)
 
 
 

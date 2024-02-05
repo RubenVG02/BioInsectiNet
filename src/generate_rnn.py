@@ -10,7 +10,7 @@ from keras.callbacks import ModelCheckpoint
 import matplotlib.pyplot as plt
 
 
-data = open(r"C:\Users\ASUS\Desktop\fungic\Fungic_Insecticides\insectos.txt").read()
+data = open(r"").read()
 
 # to get the unique data elements to integers using a dictionary
 # so we associate a numerical value to each letter
@@ -74,7 +74,7 @@ model.compile(optimizer="adam",
                loss="categorical_crossentropy", metrics=["accuracy"])
 #Different loss functions can be used, but I reccomend categorical_crossentropy
 
-filepath = "modelo_rnn_insectos.hdf5" #Path to save the model
+filepath = "" #Path to save the model
 checkpoint = ModelCheckpoint(filepath=filepath,
                              monitor='loss',
                              verbose=1,

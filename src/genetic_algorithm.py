@@ -214,7 +214,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
         writer = csv.writer(file)
         best_parent= min(parents, key=lambda x: x[1]) 
         writer.writerow([best_parent[0], best_parent[1]]) #We save the best parent to compare at the end
-        Draw.MolToImageFile(Chem.MolFromSmiles(best_parent[0]), filename=fr"results_presentation/bombix_mori/best_molecule_{name_img_initial}.jpg",
+        Draw.MolToImageFile(Chem.MolFromSmiles(best_parent[0]), filename=fr"examples/best_molecule_{name_img_initial}.jpg",
             size=(400, 300))
     file_preparation(file_path=path_save, headers=["SMILE", "Affinity"])
 
@@ -269,7 +269,7 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
                 print("IC50 value:", affinity)
             print("--------")
             molecule = Chem.MolFromSmiles(best_individual)
-            Draw.MolToImageFile(molecule, filename=fr"results_presentation/bombix_mori/best_molecule_{name_img}.jpg",
+            Draw.MolToImageFile(molecule, filename=fr"examples/best_molecule_{name_img}.jpg",
             size=(400, 300))
             with open(f"{name_file_best}.csv","a") as file:
                 file_preparation(file_path=f"{name_file_best}", headers=["SMILE", "Affinity"])
@@ -324,8 +324,5 @@ def compare_ic50(list_score, objective_ic50):
         else:
             return False
     
-'''target="MDGNSTSDIVILSGNSHPELADLIANRLGVRKGGCSVYHKTNRETIVEIADSIRGKNIYIIQTGTKDVNNNIMELLIMAYACKTSSASSIVGVIPYLPYSKQCKMRKRGCIVSKLLAQMMCKSGLSHIITMDLHQKEIQGFFDCPVDNLRASPFLLQYIQESIPDYRNSVIVARNPGSAKKATSYAERLRLAIAVIHGEQKEAESDEVDGRYSPPCIPRSRTMDVSVGVPAHPAKEKPPINVVGDVGGRIAIMVDDMIDDVQSFVAAAEVLKECGAYKIYVLATHGLLSSDAPRLIEDSPIDEVVVTNTVPHELQKMQCNKIKTIDISILISEAIRRIHNKESMSYLFKNVTLED"
-
-genetic_algorithm(target=target, initial_pop_path=["Nc1ncnc2c1ncn2[C@@H]1O[C@H](CO)C[C@H]1O"], objective_ic50=20, generations=100, bests=2, path_save=r"results_presentation\bombix_mori/resultados_bombix_mori", save_since=100, name_file_best="results_presentation\bombix_mori/bombix_mori_mejor", name_img="bombix_mori_mejor", name_img_initial="bombix_mori_inicial", initial=r"results_presentation\bombix_mori/bombix_mori_inicial")'''
 
 
