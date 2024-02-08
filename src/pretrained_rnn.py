@@ -15,10 +15,15 @@ import sys
 import random
 import time
 
+from colorama import init as colorama_init
+from colorama import Fore
+from colorama import Style
+
+colorama_init()
 
 
 
-def generator(path_model=r"", path_data=r"",
+def generator(path_model=r"models\definitive_models\rnn_model.hdf5", path_data=r"samples/txt_files/98k.txt",
               number_generated=100, img_druglike=True, path_destination_molecules=r""):
     '''
         Parameters:
@@ -115,7 +120,7 @@ def generator(path_model=r"", path_data=r"",
             prediction = model.predict(x, verbose=0)
             index = np.argmax(prediction)  #Get the maximum value from the prediction array
             result = int_2_elements[index]
-            print(result, end="")
+            print(result, end="" )
             final += result
             pattern=np.append(pattern, index)
             pattern = pattern[1:len(pattern)]
@@ -131,7 +136,7 @@ def generator(path_model=r"", path_data=r"",
                     print("error")
                 elif not mol1 == None:
                     print(result)
-                    print("A chemically possible molecule has come out, I look to see if it is drug-like")
+                    print(f"{Fore.YELLOW}A chemically possible molecule has come out, I'll check if it's drug-like{Style.RESET_ALL}")
                     if Descriptors.ExactMolWt(mol1) < 500 and Descriptors.MolLogP(mol1) < 5 and Descriptors.NumHDonors(mol1) < 5 and Descriptors.NumHAcceptors(mol1) < 10:
                         #All the conditions that a molecule must meet to be considered drug-like  
                         with open(f"{path_destination_molecules}", "a") as file:
@@ -143,8 +148,12 @@ def generator(path_model=r"", path_data=r"",
                                     Draw.MolToImageFile(
                                 mol1, filename=fr"examples/generated_molecules/molecula{int(time.time())}.jpg", size=(400, 300))
                         total_smiles.append(i)
-                        print("The obtained molecule is drug-like")
+                        print(f"{Fore.GREEN}The obtained molecule is drug-like{Style.RESET_ALL}")
             else:
                 pass
         final = ""
     return total_smiles
+
+#Example of use
+generator(path_model=r"models\specific_RNN_models\modelo_rnn_insectos.hdf5", path_data=r"samples\txt_files\insectos.txt",
+              number_generated=100, img_druglike=True, path_destination_molecules=r"examples/generated_molecules/generated_molecules.txt")

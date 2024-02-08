@@ -10,7 +10,7 @@ from keras.callbacks import ModelCheckpoint
 import matplotlib.pyplot as plt
 
 
-data = open(r"").read()
+data = open(r"samples\txt_files\98k.txt").read()
 
 # to get the unique data elements to integers using a dictionary
 # so we associate a numerical value to each letter
@@ -67,8 +67,8 @@ model = tf.keras.models.Sequential([CuDNNLSTM(128, input_shape=(137, 1), return_
 #Depending on the number of different elements in your smile sequence, map_char can be changed, and you can also change it manually depending on your df
 
 
-'''model.load_weights(
-    r"")'''
+model.load_weights(
+    r"models\definitive_models\rnn_model.hdf5")
 #This is used to continue training a model that has already been trained
 model.compile(optimizer="adam",
                loss="categorical_crossentropy", metrics=["accuracy"])
