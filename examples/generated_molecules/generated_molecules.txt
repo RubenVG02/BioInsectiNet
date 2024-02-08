@@ -109,3 +109,5 @@ CCOC(=O)c1ccc(N/N=C/c2ccccc2F)cc1
 O=C(c1ccccc1)c1ccc(C(=O)C2CCCC2)cc1
 CC(C)C(=O)OCC(C)C(C)C
 CC(C)C(=O)NCC(=O)NCCCCCCCCCCCCCC
+O=C(Nc1ccc(C(=O)c2ccccc2)cc1)c1ccccc1
+O=C(COc1ccccc1)c1cnc(-c2ccccc2)o1
