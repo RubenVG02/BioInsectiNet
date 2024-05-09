@@ -70,8 +70,6 @@ pip install requirements.txt
 - Add more databases to the CNN
 - Add more databases to the RNN
 - More complexity to the GA
-- Directly obtain the 3D structure of the designed bioinsecticides
-
 
 ## License
 
