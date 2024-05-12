@@ -42,10 +42,9 @@ def upload_mega(name_file):
     -name_file: Name of the file to be uploaded. It must be in the same folder as the script.
     
     '''
-
-    mail="joneltmp+dilzy@gmail.com"
-    contra=base64.b64decode("J2NudncnZDkwY253cTljcG53cW5lamR3cHFjbm1qZXcnYzlu")
-    contra=contra.decode("UTF-8")
+    #Use your own mega account
+    mail=""
+    contra="" 
     mega=Mega()
     mega._login_user(email=mail, password=contra)
     pujada = mega.upload(f"{name_file}.csv")
