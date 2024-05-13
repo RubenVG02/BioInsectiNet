@@ -38,6 +38,21 @@ Then, using PyMOL, you can obtain the 3D structure of the designed bioinsecticid
 
 ## Installation
 
+Via Git Clone:
+```bash
+
+git clone https://github.com/RubenVG02/BioinsecticidesDiscovery.git
+
+```
+
+Via Lastest Release:
+
+```bash
+
+https://github.com/RubenVG02/BioinsecticidesDiscovery/releases
+
+```
+
 To use this project, you need to have Python 3.7 or higher installed. Then, you need to install the following libraries:
 - Keras
 - Tensorflow
