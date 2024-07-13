@@ -18,6 +18,7 @@ This project facilitates the discovery and design of new bioinsecticides based o
 
 3. **Data**: Use data from databases such as Chembl, PubChem, or the provided "insect.csv".
 
+
 ### CNN Usage (Affinity Prediction)
 
 To predict toxicity using the CNN model, run:
