@@ -1,69 +1,91 @@
 # Fungic Bioinsecticide Discovery
 
+## Overview
+
+This project facilitates the discovery and design of new bioinsecticides based on target proteins. It includes tools for predicting toxicity, generating bioinsecticides, and obtaining 3D structures of designed molecules. The project leverages neural networks for toxicity prediction and bioinsecticide generation, along with genetic algorithms to refine designs.
 
 ## Usage
 
-First of all, to make a good prediction, the target proteins must be in the FASTA (amino acids) sequence.
+### Preparing Data
 
-Then, you need 2 neural networks, one for toxicity prediction and another to generate bioinsecticides. You can train them yourself using `cnn_affinity.py` for toxicity prediction and `generate_rnn.py` for bioinsecticide generation. You can also use the ones I have trained, which are in the `definitive_models` folder.
+1. **FASTA Sequence**: Ensure your target protein is in FASTA format (amino acid sequence).
 
-To train your models you need data, which can be obtained from different databases such as Chembl, Pubchem, etc. You can also use the one I have used, which is "insect.csv".
+2. **Neural Networks**: You need two neural networks:
+   - **Toxicity Prediction**: Use `cnn_affinity.py` to train or utilize the pre-trained model.
+   - **Bioinsecticide Generation**: Use `generate_rnn.py` to train or utilize the pre-trained model.
 
-### CNN USAGE (Affinity) ###
-To use the CNN, use `check_affinity.py`. You need to specify the path to the model, the path to the data, and the path to the target protein. The program will return the toxicity of the designed bioinsecticides using the `calculate_affinity` function.
+   Alternatively, use the pre-trained models located in the `definitive_models` folder.
 
-### RNN USAGE (Generation) ###
+3. **Data**: Use data from databases such as Chembl, PubChem, or the provided "insect.csv".
 
-To use the RNN, use `pretrained_rnn.py`. You need to specify the path to the model, the path to the data, and the path to the target protein. The program will return the designed bioinsecticides using the generate function.
+### CNN Usage (Affinity Prediction)
 
-### COMBINATION ###
+To predict toxicity using the CNN model, run:
 
-To use the combination of both models, use `affinity_with_target_and_generator.py`. You need to specify the path to the model, the path to the data, and the path to the target protein. The program will return the designed bioinsecticides using the generate function. You can also specify the toxicity limit of the designed bioinsecticides using the calculate_affinity function. The program will return the designed bioinsecticides with a lower toxicity than the limit. You can also specify a path of generated molecules to check.
+```bash
+python check_affinity.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein>
+```
 
-### GENETIC ALGORITHM ###
+The program will return the toxicity of the designed bioinsecticides using the 'calculate_affinity' function.
 
-To use the genetic algorithm, use `genetic_algorithm.py`. You can use 3 paths:
-- Smile sequences using lists [smile1, smile2, smile3, ...]
-- Smile sequences using a CSV file
-- RNN model
+### RNN Usage (Bioinsecticide Generation)
 
-Then, you need to specify your model path, the number of generations, and the destination path. The program will return the best smile sequence of the last generation.
+To generate bioinsecticides using the RNN model, run:
 
-### 3D STRUCTURE ###
+```bash
+python pretrained_rnn.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein>
+```
 
-To obtain the 3D structure of the designed bioinsecticides, use `3d_repr.py`. You need to specify the path to the model, the path to the data, and the path to the target protein. The program will return the designed bioinsecticides using the generate function. You can also specify the toxicity limit of the designed bioinsecticides using the calculate_affinity function. The program will return the designed bioinsecticides with a lower toxicity than the limit. You can also specify a path of generated molecules to check. You will obtain an SDF file with the 3D structure of the designed bioinsecticides.
-Then, using PyMOL, you can obtain the 3D structure of the designed bioinsecticides in different formats (SDF, PDB, etc.) by using the "pymol_3d.py" script directly in PyMOL.
+The program will return the designed bioinsecticides using the 'generate' function.
 
+### Combination of Models
 
+For combining both models (generation and toxicity prediction), use:
+
+```bash
+python affinity_with_target_and_generator.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein> --toxicity_limit <toxicity_limit> --output_path <path_to_output>
+```
+
+The program will generate bioinsecticides and filter out those exceeding the specified toxicity limit. You can also specify a path to check generated molecules.
+
+### Genetic Algorithm
+
+To use the genetic algorithm, run:
+
+```bash
+python genetic_algorithm.py --smiles_list <smiles_list> --csv_file <path_to_csv_file> --rnn_model <path_to_rnn_model> --model_path <path_to_model> --generations <number_of_generations> --output_path <path_to_output>
+```
+
+You can provide SMILES sequences directly, via a CSV file, or use an RNN model to guide the generation. The program will return the best SMILES sequence from the last generation.
+
+### Installation
+
+To obtain the 3D structure of the designed bioinsecticides, run:
+
+```bash
+python 3d_repr.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein> --toxicity_limit <toxicity_limit> --output_path <path_to_output>
+```
+
+This will generate an SDF file containing the 3D structure of the bioinsecticides. Use PyMOL to convert the SDF file to other formats (e.g., PDB) using the pymol_3d.py script.
 
 ## Installation
 
-Via Git Clone:
-```bash
+Clone the repository:
 
+```bash
 git clone https://github.com/RubenVG02/BioinsecticidesDiscovery.git
-
 ```
 
-Via Lastest Release:
+Or download the latest release:
 
 ```bash
-
-https://github.com/RubenVG02/BioinsecticidesDiscovery/releases
-
+wget https://github.com/RubenVG02/BioinsecticidesDiscovery/releases/latest
 ```
 
-To use this project, you need to have Python 3.7 or higher installed. Then, you need to install the following libraries:
-- Keras
-- Tensorflow
-- Numpy
-- Pandas
-- Matplotlib
-
-To install the required libraries, use:
+Ensure Python 3.7 or higher is installed. Install the required libraries using:
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Authors
@@ -96,6 +118,8 @@ pip install requirements.txt
 - [Tensorflow](https://www.tensorflow.org/)
 - [Numpy](https://numpy.org/)
 - [Pandas](https://pandas.pydata.org/)
+
+
 
 
 
