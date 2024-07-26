@@ -3,16 +3,17 @@ from rdkit.Chem import Draw
 from rdkit.Chem.rdchem import RWMol
 from rdkit.Chem import Draw
 from rdkit.Chem import Descriptors
-from check_affinity import calculate_affinity
+
+
 import random   
-import numpy as np
-import pandas as pd
 import csv
+
 from affinity_with_target_and_generator import find_candidates
-import time
+from check_affinity import calculate_affinity
 
 
-def select_parents(initial_population=r"", target="", bests=2):
+
+def select_parents(initial_population, target, bests=2):
 
     '''
     Function to select the parents of the first generations of the genetic algorithm. The parents are the molecules with the best affinity to the target.
@@ -20,6 +21,7 @@ def select_parents(initial_population=r"", target="", bests=2):
     Parameters:
     -initial_population: Path of the file with the initial population of molecules. If it is not specified, the function will use the function find_candidates to obtain the initial population.
     -target: Sequence of the target in FASTA format.
+    -bests: Number of best molecules to select as parents. By default, 2.
     
     '''
     if "generate" in initial_population:
@@ -69,19 +71,21 @@ def select_parents(initial_population=r"", target="", bests=2):
     return parents            
   
 
-def check_druglikeness(smile=""):
+def check_druglikeness(smile):
     '''
-    Function to check if a molecule is druglike or not. If it is not druglike, it will be removed from the population.
+    Function to check if a molecule is druglike. If not, it will be removed from the population.
 
     Parameters:
-    -smile: Sequence of the molecule in smile format.
+    - smile: Molecule structure in SMILE format.
 
     '''
-    mol1=Chem.MolFromSmiles(smile)
-    if mol1 is not None:
-        if Descriptors.ExactMolWt(mol1) < 500 and Descriptors.MolLogP(mol1) < 5 and Descriptors.NumHDonors(mol1) < 5 and Descriptors.NumHAcceptors(mol1) < 10:
-                        #All the conditions that a molecule must meet to be considered drug-like  
-            return True
+    mol = Chem.MolFromSmiles(smile)
+    if mol:
+        return (Descriptors.ExactMolWt(mol) < 500 and
+                Descriptors.MolLogP(mol) < 5 and
+                Descriptors.NumHDonors(mol) < 5 and
+                Descriptors.NumHAcceptors(mol) < 10)
+    return False
             
 def childs(*parents, cant=0):
     '''
@@ -111,17 +115,16 @@ def childs(*parents, cant=0):
         childs(*parents)
         cant+=1
     
-def mutations(smile="", mutation_rate=0.1):
+def mutations(smile, mutation_rate=0.1):
 
     '''
     Function to mutate a molecule in order to obtain a new molecule with a better affinity to the target.
 
     Parameters:
-    -smiles: Sequence of the molecule in smile format obtained from the parents generation.
-    -mutation_rate: Probability of mutation of an atom in the molecule.
+    -smile: SMILE string of the molecule obtained from parents
+    -mutation_rate: Probability of mutation for each atom in the molecule. By default, 0.1
 
     '''
-    #atoms=[6, 5, 7, 15, 8, 16, 9, 35, 53, 6]
     atoms= [6, 5, 7, 15, 8, 16, 9, 17, 35, 53]
 
 
@@ -181,7 +184,7 @@ def mutations(smile="", mutation_rate=0.1):
 
     return child_generated
                 
-def file_preparation(file_path="", headers=[]):
+def file_preparation(file_path, headers=[]):
     '''
     Function to create the .csv file to which the obtained data will be added
     
@@ -310,7 +313,6 @@ def genetic_algorithm(target="", initial_pop_path=r"", objective_ic50=20, genera
 
 
 def compare_ic50(list_score, objective_ic50):
-
     '''
     Function to compare the affinity of the molecules with the objective affinity.
 
