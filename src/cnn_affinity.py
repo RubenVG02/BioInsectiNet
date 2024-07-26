@@ -10,26 +10,22 @@ from keras.regularizers import l2
 
 
 
-arx = pd.read_csv(r"", sep=",")
+file_path = pd.read_csv(r"your_file_path.csv", sep=",")
 
-# maximum value that I want my smiles to have, they will be used to train the model
+# Maximum lengths for SMILES and FASTA sequences
 max_smiles = 130
+max_fasta = 5000
+
 elements_smiles = ['N', '2', 'H', 'K', 'Z', 'O', 'M', ']', 'c', 'l', '=', '6', ')', 'F', 'o', 'r', '7', 'P','g', '5', 't', '8', '9', '1', '0', 'I', '4', '[', 'i', 'a', 'C', '-', 'n', '#', 'L', '(', 'S', 'B', 'A', 'T', 's', '3', '+', 'e']
+elements_fasta = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']  
+
 # elements_smiles refers to the elements by which the smiles can be formed
-# if you want to use all of your arx: arx.smiles.apply(list).sum(), although it will take a long time in very large arx
+# If you want to use all of your file, use: file_path.smiles.apply(list).sum(), although it will take a long time in very large file
 
 int_smiles = dict(zip(elements_smiles, range(1, len(elements_smiles)+1)))
-# To associate all elements with a given int (range is 1, len+1 because they are filled with zeros to reach maximum_smiles)
+int_fasta = dict(zip(elements_fasta, range(1, len(elements_fasta)+1)))
 
-max_fasta = 5000
-elements_fasta = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
-                  'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']  # Formed by the different aa that make up the fasta
-
-int_fasta = dict(zip(elements_fasta, range(1, len(elements_fasta))))
-# To associate all elements with a given int (range is 1, len+1 because they are filled with zeros to reach maximum_fasta)
-
-
-def convert(arx=arx):
+def convert(arx=file_path):
 
     #Function to convert all elements (both smiles and fasta) into int, in order to be trained in the model
 

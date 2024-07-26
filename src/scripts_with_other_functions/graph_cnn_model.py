@@ -1,28 +1,41 @@
-from check_affinitat import mesurador_afinitat
+from check_affinity import calculate_affinity
 import matplotlib.pyplot as plt
-
 import pandas as pd
-import tensorflow as tf
 import numpy as np
 
+def create_graph(path_data_csv):
+    """
+    Create a scatter plot comparing real values and predicted values.
 
-def create_graph(path_data_csv=r""):
-    # Function to create a graph comparing the real values and the predicted values
-    real_data = pd.read_csv(
-        path_data_csv, sep=",", header=0, names=["smiles", "sequence", "IC50"])
+    Parameters:
+        path_data_csv (str): Path to the CSV file containing the data.
+    """
+    # Load the data from the CSV file
+    real_data = pd.read_csv(path_data_csv, sep=",", header=0, names=["smiles", "sequence", "IC50"])
 
-    smiles = np.array([smile for smile in real_data["smiles"]])
-    fasta = np.array([fasta for fasta in real_data["sequence"]], dtype="S")
-    ic50 = np.array([ic50 for ic50 in real_data["IC50"]], dtype="f")
-    predicts = []
-    for i in range(50):
-        prediction = mesurador_afinitat(smile="CCN(CCO)CC(=O)N1CC[C@@H](C(=O)N[C@H]2C[C@@H](C)O[C@@H](C)C2)CC1", fasta=fasta[i])
-        predicts.append(prediction)
+    # Extract columns from the DataFrame
+    smiles = np.array(real_data["smiles"])
+    fasta_sequences = np.array(real_data["sequence"], dtype="S")
+    ic50_values = np.array(real_data["IC50"], dtype="f")
 
-    plt.scatter(predicts, ic50[0:50])
+    # List to store predictions
+    predictions = []
+
+    # Generate predictions
+    for i in range(min(50, len(fasta_sequences))):
+        prediction = calculate_affinity(smile="CCN(CCO)CC(=O)N1CC[C@@H](C(=O)N[C@H]2C[C@@H](C)O[C@@H](C)C2)CC1", fasta=fasta_sequences[i])
+        predictions.append(prediction)
+
+    # Truncate ic50_values to match the number of predictions
+    ic50_values_truncated = ic50_values[:len(predictions)]
+
+    # Create the scatter plot
+    plt.scatter(predictions, ic50_values_truncated)
     plt.xlabel("Predictions")
     plt.ylabel("Real values")
+    plt.title("Predicted vs Real IC50 Values")
     plt.show()
 
-
-create_graph()
+# Example usage
+path_to_csv = "path_to_your_data.csv"  # Update this with the actual path to your CSV file
+create_graph(path_to_csv)
