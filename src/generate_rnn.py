@@ -12,12 +12,11 @@ import matplotlib.pyplot as plt
 
 data = open(r"samples\txt_files\98k.txt").read()
 
-# to get the unique data elements to integers using a dictionary
-# so we associate a numerical value to each letter
+# To get the unique data elements to integers using a dictionary
 elements_smiles = {u: i for i, u in enumerate(sorted(set(data)))}
 elements_smiles.update({-1: "\n"})
 
-# to pass the numeric elements to smile elements
+# To pass the numeric elements to smile elements
 int_2_elements = {i: u for i, u in enumerate(sorted(set(data)))}
 int_2_elements.update({"\n": -1})
 
@@ -62,20 +61,20 @@ model = tf.keras.models.Sequential([CuDNNLSTM(128, input_shape=(137, 1), return_
                                      Dropout(0.15),
                                      Dense(map_char, activation="softmax")])
 
-#We can modify the model to add more layers or change the number of neurons in each layer
-#We can also change the optimizer, the loss function and the metrics
-#Depending on the number of different elements in your smile sequence, map_char can be changed, and you can also change it manually depending on your df
+# We can modify the model to add more layers or change the number of neurons in each layer
+# We can also change the optimizer, the loss function and the metrics
+# Depending on the number of different elements in your smile sequence, map_char can be changed, and you can also change it manually depending on your df
 
 
 model.load_weights(
     r"models\definitive_models\rnn_model.hdf5")
-#This is used to continue training a model that has already been trained
+# This is used to continue training a model that has already been trained
 model.compile(optimizer="adam",
                loss="categorical_crossentropy", metrics=["accuracy"])
-#Different loss functions can be used, but I reccomend categorical_crossentropy
+# Different loss functions can be used, but I reccomend categorical_crossentropy
 
-filepath = "" #Path to save the model
-checkpoint = ModelCheckpoint(filepath=filepath,
+checkpoint_path = "path_to_save_model" 
+checkpoint = ModelCheckpoint(filepath=checkpoint_path,
                              monitor='loss',
                              verbose=1,
                              save_best_only=True, mode='min')
@@ -83,7 +82,10 @@ callbacks_list = [checkpoint]
 
 r = model.fit(dataset, epochs=100, callbacks=callbacks_list, batch_size=128)
 
-plt.plot(r.history["accuracy"], label="accuracy")
+plt.plot(r.r["accuracy"], label="accuracy")
+plt.title("Model Accuracy")
+plt.xlabel("Epochs")
+plt.ylabel("Accuracy")
 plt.legend()
+plt.savefig("accuracy_plot.png")
 plt.show()
-plt.savefig("acc.png")

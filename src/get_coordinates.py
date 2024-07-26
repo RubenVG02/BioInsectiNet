@@ -2,20 +2,27 @@ import requests
 
 def obtain_sdf(smile="", name="molecule_sdf"):
     """
-    Function to obtain sdf file of an smile sequence in order to use it on PyMol
-    
+    Obtain the SDF file of a molecule given its SMILES sequence.
+
     Parameters:
-    -smile: Sequence of the molecule in smile format.
-    -name: Name of the sdf file.
+        smile (str): SMILES sequence of the molecule.
+        name (str): Name of the output SDF file (without extension).
+
+    Returns:
+        str: Message indicating the result of the file creation.
     """
-    request=requests.get(f"https://cactus.nci.nih.gov/chemical/structure/{smile}/file?format=sdf&get3d=True")
-    sdf_file=request.text
-    print(sdf_file)
+
+    url = f"https://cactus.nci.nih.gov/chemical/structure/{smile}/file?format=sdf&get3d=True"
+    
+    response = requests.get(url)
+    
+    sdf_file = response.text
+    
     if "Page not found" in sdf_file:
         print("SDF file not found")
         return "SDF file not found"
     else:
-        with open(f"{name}.sdf","w") as f:
+        with open(f"{name}.sdf", "w") as f:
             f.write(sdf_file)
         print("SDF file created")
-    
+        return "SDF file created"

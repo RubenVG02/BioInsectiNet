@@ -26,39 +26,58 @@ colorama_init()
 def generator(path_model=r"models\definitive_models\rnn_model.hdf5", path_data=r"samples/txt_files/98k.txt",
               number_generated=100, img_druglike=True, path_destination_molecules=r""):
     '''
-        Parameters:
-        -path_model: Path where the already trained model is located
-        -path_data: Path where the data used is located (path model and path data must have the same dimensions/same amount of different elements)
-        -number_generated: Number of molecules that are generated, by default 100
-        -img_druglike: To generate .jpg images of the generated drug-like molecules (they will be ordered according to epoch) (By default True)
-        -Path_destination_molecules: Destination path of the generated SMILE sequences
+    Generate molecules using a pre-trained RNN model and evaluate if they are drug-like.
+
+    Parameters:
+        path_model (str): Path to the pre-trained model file.
+        path_data (str): Path to the text file used for training the model.
+        number_generated (int): Number of molecules to generate (default is 100).
+        img_druglike (bool): Whether to generate images of drug-like molecules (default is True).
+        path_destination_molecules (str): Path to save the generated SMILES sequences.
+    
+    Returns:
+        list: List of generated SMILES sequences.
+    
     '''
-    def split_input_target(valors):
-        input_text = valors[:-1]
-        target_idx = valors[-1]
+    def split_input_target(values):
+
+        """
+        Split the input and target for training.
+        
+        Parameters:
+            values (np.ndarray): Array of input and target values.
+        
+        Returns:
+            tuple: Input and target tensors.
+        """
+
+        input_text = values[:-1]
+        target_idx = values[-1]
         target = tf.one_hot(target_idx, depth=map_char)  #depth must be equal to the number of different outputs of the pre-trained model
         target = tf.reshape(target, [-1])
         return input_text, target
     
     def create_seed(max_molecules=137):
         '''
-        Function that takes your ds and allows you to obtain a seed from it to generate molecules
+        Create a seed pattern for molecule generation.
         
         Parameters:
-            -max_molecules: Maximum length you want your pattern/seed to have, by default, 137
+            max_molecules (int): Maximum length of the seed pattern (default is 137).
         
+        Returns:
+            np.ndarray: Seed pattern array.
         '''
-        generador_seeds=tfds.as_numpy(dataset.take(random.randint(0, len(dades))).take(1))
+        generador_seeds=tfds.as_numpy(dataset.take(random.randint(0, len(data))).take(1))
         for a, b in enumerate(generador_seeds):
             break
         pattern=b[0][np.random.randint(0,max_molecules)]
         return pattern
 
     with open(f"{path_data}") as f:
-        dades = "\n".join(line.strip() for line in f)
+        data = "\n".join(line.strip() for line in f)
 
 
-    elements_smiles = {u: i for i, u in enumerate(sorted(set(dades)))}
+    elements_smiles = {u: i for i, u in enumerate(sorted(set(data)))}
     elements_smiles.update({-1: "\n"})
 
 
@@ -70,7 +89,7 @@ def generator(path_model=r"models\definitive_models\rnn_model.hdf5", path_data=r
     
     
 
-    slices = np.array([[elements_smiles[c]] for c in dades])
+    slices = np.array([[elements_smiles[c]] for c in data])
 
     # Create training examples / targets
     char_dataset = tf.data.Dataset.from_tensor_slices(slices)
@@ -155,5 +174,8 @@ def generator(path_model=r"models\definitive_models\rnn_model.hdf5", path_data=r
     return total_smiles
 
 #Example of use
-generator(path_model=r"models\specific_RNN_models\modelo_rnn_insectos.hdf5", path_data=r"samples\txt_files\insectos.txt",
-              number_generated=100, img_druglike=True, path_destination_molecules=r"examples/generated_molecules/generated_molecules.txt")
+generator(path_model=r"models\specific_RNN_models\modelo_rnn_insectos.hdf5", 
+          path_data=r"samples\txt_files\insectos.txt",
+          number_generated=100, 
+          img_druglike=True, 
+          path_destination_molecules=r"examples/generated_molecules/generated_molecules.txt")

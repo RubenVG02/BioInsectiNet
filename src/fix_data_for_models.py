@@ -2,120 +2,93 @@ import pandas as pd
 from chembl_webresource_client.new_client import new_client
 import csv
 
+def get_target_smiles(target_id, output_csv="data1"):
+    """
+    Retrieve all SMILES for a given target and store the data in a CSV file.
 
-def selection_mol(id, name_file="data1", name_df="df"):
-    '''
-    Function to obtain all the smiles of a given target, and store them into a csv file
-    
     Parameters:
-        -id: CHEMBL ID
-        -name_file: Name of the file (by default, "data1")
-        -name_df: Name df (by default, "df")
-    '''
-    act = new_client.activity
-    # IC50: amount of inhibitor subs you need to inhibit at 50%
-    res = act.filter(target_chembl_id=id).filter(standard_type="IC50")
-    name_df = pd.DataFrame.from_dict(res)
-    name_df.to_csv(f"{name_file}.csv", index_label=False)
-    return name_df
-
-
-def clean_data_rnn(name_file="drugs", name_file2="dades_netes"):
-    ''' 
-    Function to clean the data and store it into a csv file, which will be ready to be used for the RNN model
+        target_id (str): The CHEMBL ID of the target.
+        output_csv (str): Name of the output CSV file (without extension).
     
+    Returns:
+        pd.DataFrame: DataFrame containing the retrieved data.
+    """
+    activity_client = new_client.activity
+    results = activity_client.filter(target_chembl_id=target_id).filter(standard_type="IC50")
+    df = pd.DataFrame.from_dict(results)
+    df.to_csv(f"{output_csv}.csv", index=False)
+    return df
+
+
+
+def clean_and_prepare_data(input_csv="drugs", output_csv="cleaned_data"):
+    """
+    Clean the data and prepare it for the RNN model, saving the result to a CSV file.
+
     Parameters:
-        -name_file: input file name 
-        -name_file2: name of the net archive
-    '''
-    arx = pd.read_csv(f"{name_file}.csv", sep=";", index_col=False)
-    datfr = arx[arx["Standard Value"].notna()]
-    datfr = datfr[arx.Smiles.notna()]
-    df_no_dup = datfr.drop_duplicates(['Smiles'])
-    selecc = ['Molecule ChEMBL ID', 'Smiles', 'Standard Value']
-    df2 = df_no_dup[selecc]
-    print(df2.value_counts())
-
-    # Standard Value smaller than 0 are deleted
-    df2 = df2[df2["Standard Value"] > 0]
-    df2 = df2.reset_index(drop=True)
-    # This is the 
-    df2.to_csv(f"{name_file2}.csv", index=False, sep=",")
-
-    # Quants elements utilitzes per entrenar el model
-    print(df2.value_counts())
-
-    return f"{name_file2}.csv"
+        input_csv (str): Name of the input CSV file (without extension).
+        output_csv (str): Name of the output CSV file (without extension).
+    
+    Returns:
+        str: Name of the output CSV file.
+    """
+    df = pd.read_csv(f"{input_csv}.csv", sep=";", index_col=False)
+    df_clean = df.dropna(subset=["Standard Value", "Smiles"])
+    df_clean = df_clean.drop_duplicates(subset=["Smiles"])
+    df_clean = df_clean[df_clean["Standard Value"] > 0]
+    df_clean = df_clean.reset_index(drop=True)
+    
+    columns_to_keep = ['Molecule ChEMBL ID', 'Smiles', 'Standard Value']
+    df_final = df_clean[columns_to_keep]
+    df_final.to_csv(f"{output_csv}.csv", index=False, sep=",")
+    
+    print(f"Cleaned data: {df_final.shape[0]} records.")
+    return f"{output_csv}.csv"
 
 
-def obtain_smiles(origin_file="500k_dades", destination_txt="smiles_22", separator=","):
-    '''
-        Parameters:
-        -origin_file: file from which we will obtain the smiles
-        -destination_file: file where the smiles will be saved
-        -separator: separator of the file (by default, ",")
-    '''
-    dades = pd.read_csv(f"{origin_file}.csv", sep=separator,low_memory=False)
-    llista_smiles = dades["Smiles"].unique()
-    with open(f"{destination_txt}.txt", "w") as f:
-        for line in llista_smiles:
-            f.write(str(line) + "\n")
 
+def extract_smiles_from_csv(input_csv="500k_dades", output_txt="smiles_list", separator=","):
+    """
+    Extract SMILES from a CSV file and save them to a text file.
 
-def neteja_dades_afinitat(name_file="inh", destination_file="cnn_file_fixed", col_smiles="Ligand SMILES", col_ic50="IC50 (nM)", col_seq="BindingDB Target Chain Sequence"):
-    '''
-        Parameters:
-         -name_file: Name of the source file to modify, in tsv format
-         -target_name: Name of the target file to be created
-         -col_smiles: Columns from which you want to get the smiles
-         -col_ic50: Columns from which to obtain the ic50
-         -col_seq: Columns from which to obtain the sequences
+    Parameters:
+        input_csv (str): Name of the input CSV file (without extension).
+        output_txt (str): Name of the output text file (without extension).
+        separator (str): Separator used in the CSV file.
+    """
+    df = pd.read_csv(f"{input_csv}.csv", sep=separator, low_memory=False)
+    unique_smiles = df["Smiles"].unique()
+    with open(f"{output_txt}.txt", "w") as file:
+        for smile in unique_smiles:
+            file.write(f"{smile}\n")
 
-    '''
-    with open(f"{name_file}.tsv", "r", encoding="utf8") as file:
-        df = pd.read_csv(file, sep="\t", on_bad_lines="skip",
-                         low_memory=False, nrows=1000000)
-        columna_cadena = df[col_seq]
-        columna_50 = df[col_ic50]
-        columna_smiles = df[col_smiles]
+def clean_affinity_data(input_tsv="inh", output_csv="cleaned_affinity_data", col_smiles="Ligand SMILES", col_ic50="IC50 (nM)", col_seq="BindingDB Target Chain Sequence"):
+    """
+    Clean affinity data and save it to a CSV file.
 
-    cadena = []
-    for i in columna_cadena:
-        cadena.append(i)
-    ic50 = []
-    for i in columna_50:
-        ic50.append(i)
-    smiles = []
-    for i in columna_smiles:
-        smiles.append(i)
-
-    headers = ["Smiles", "IC50", "sequence"]
-    listas = [smiles, ic50, cadena]
-    with open(f"{destination_file}.csv", "w", encoding="utf8") as archivo:
-        write = csv.writer(archivo)
-        write.writerow(headers)
-        write.writerows(zip(*listas))
-
-    arx = pd.read_csv(f"{destination_file}.csv", sep=",")
-    arx["IC50"] = arx["IC50"].str.strip()
-    arx = arx.dropna(how="any").reset_index(drop=True)
-    # print(datfr)
-    df_no_dup = arx.drop_duplicates(['smiles'])
-    df_no_dup["IC50"] = df_no_dup["IC50"].str.replace(r"[<>]", "", regex=True)
-    df_no_dup["IC50"] = df_no_dup["IC50"].astype(float)
-    df_no_dup = df_no_dup[df_no_dup["IC50"] < 1000000]
-    df_no_dup = df_no_dup[df_no_dup["Smiles"].str.len() < 100]
-    df_no_dup = df_no_dup[df_no_dup["sequence"].str.len() < 5000]
-    #smiles_without_symbol = []
-    ''' for i in df_no_dup["smiles"]:
-        smiles_sense_simbols.append(i.replace("@", "").replace("\\",
-                                                               "").replace("/", "").replace(".", ""))'''
-
-    '''df_no_dup["smiles"] = smiles_sense_simbols
-    del smiles_sense_simbols'''
-    df_no_dup["sequence"] = df_no_dup["sequence"].apply(
-        lambda x: x.upper())
-    df_no_dup = df_no_dup.sample(frac=1).reset_index(drop=True)
-    df_no_dup.to_csv(f"{destination_file}.csv", index=False, sep=",")
-    return f"{destination_file}.csv"
-
+    Parameters:
+        input_tsv (str): Name of the input TSV file (without extension).
+        output_csv (str): Name of the output CSV file (without extension).
+        col_smiles (str): Name of the column containing SMILES.
+        col_ic50 (str): Name of the column containing IC50 values.
+        col_seq (str): Name of the column containing sequences.
+    
+    Returns:
+        str: Name of the output CSV file.
+    """
+    df = pd.read_csv(f"{input_tsv}.tsv", sep="\t", on_bad_lines="skip", low_memory=False)
+    
+    df_clean = df[[col_smiles, col_ic50, col_seq]].dropna()
+    df_clean.columns = ["Smiles", "IC50", "sequence"]
+    
+    df_clean["IC50"] = df_clean["IC50"].str.strip().str.replace(r"[<>]", "", regex=True).astype(float)
+    df_clean = df_clean[(df_clean["IC50"] > 0) & (df_clean["IC50"] < 1000000)]
+    df_clean = df_clean[df_clean["Smiles"].str.len() < 100]
+    df_clean = df_clean[df_clean["sequence"].str.len() < 5000]
+    df_clean["sequence"] = df_clean["sequence"].str.upper()
+    
+    df_clean = df_clean.drop_duplicates(subset=["Smiles"])
+    df_clean = df_clean.sample(frac=1).reset_index(drop=True)
+    
+    df_clean.to_csv(f"{output_csv}.csv", index=False, sep=",")
+    return f"{output_csv}.csv"
