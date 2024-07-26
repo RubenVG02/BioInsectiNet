@@ -1,20 +1,20 @@
-
-def compare(data1=r"", data2=r""):
-    '''
-  Function to compare the amount of elements that two SMILES db have, so you can use them for a given model
+def compare_smiles(file1, file2):
+    """
+    Function to compare the number of unique SMILESS strings in two databases.
     
     Parameters:
-        -data1: Path of the first file with Smiles
-        -data2: Path of the second file with Smiles
+        - file1: Path to the first file containing SMILES strings.
+        - file2: Path to the second file containing SMILES strings (optional).
         
     Returns:
-        -list with both files
-    '''
-
-
-    data1 = open(data1).read()
-    data2 = open(data2).read()
+        - A list of SMILES strings that are in the first file but not in the second file.
+    """
     
-    diferència=list(set(data1)-set(data2))
-    return diferència
-compare()
+    smiles1 = open(file1).read().splitlines()
+    smiles2 = open(file2).read().splitlines() if file2 else []
+    
+    difference = list(set(smiles1) - set(smiles2))
+    
+    return difference
+
+
