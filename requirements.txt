@@ -1,5 +1,5 @@
 chembl_webresource_client==0.10.8
-keras==2.11.0
+keras==2.13.1
 matplotlib==3.6.2
 mega.py==1.0.8
 numpy==1.23.3
