@@ -1,8 +1,9 @@
-# Fungic Bioinsecticide Discovery
+# BioInsectiNet: Neural Network and Genetic Algorithm Framework for Bioinsecticide Design
+
 
 ## Overview
 
-This project facilitates the discovery and design of new bioinsecticides based on target proteins. It includes tools for predicting toxicity, generating bioinsecticides, and obtaining 3D structures of designed molecules. The project leverages neural networks for toxicity prediction and bioinsecticide generation, along with genetic algorithms to refine designs.
+This project enables the discovery and design of novel bioinsecticides targeting specific proteins. It features tools for predicting toxicity, generating bioinsecticides, and obtaining 3D structures of the designed molecules. By leveraging neural networks for toxicity prediction and bioinsecticide generation, combined with genetic algorithms for design refinement, this project enhances the efficiency and specificity of bioinsecticide development.
 
 ## Usage
 
