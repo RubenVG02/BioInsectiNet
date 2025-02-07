@@ -5,16 +5,18 @@ channels:
   - bioconda
 dependencies:
   - python=3.11
-  - keras
-  - matplotlib
-  - numpy
-  - pandas
-  - qrcode
   - rdkit
-  - requests
   - pip
   - pip:
-      - mega.py
+      - mega.py # for uploading the results (optional)
       - pandas
       - requests
-      - tensorflow==2.15.1
+      - qrcode 
+      - scikit-learn
+      - torch
+      - pandas
+      - numpy
+      - matplotlib
+      - tqdm # for the progress bar
+      - nltk # for the BLEU score
+
