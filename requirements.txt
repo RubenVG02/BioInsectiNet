@@ -1,5 +1,4 @@
-chembl_webresource_client==0.10.8
-keras==2.13.1
+
 matplotlib==3.6.2
 mega.py==1.0.8
 numpy==1.23.3
@@ -7,5 +6,7 @@ pandas==1.5.2
 qrcode==7.3.1
 rdkit==2022.9.2
 Requests==2.31.0
-tensorflow==2.12.1
-tensorflow_datasets==4.7.0
+scikit-learn==1.0.2
+
+
+
