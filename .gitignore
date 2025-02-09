@@ -130,3 +130,5 @@ dmypy.json
 
 data/
 samples/
+
+test_pty.py
