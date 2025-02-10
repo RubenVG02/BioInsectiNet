@@ -132,3 +132,4 @@ data/
 samples/
 
 test_pty.py
+*.npy
