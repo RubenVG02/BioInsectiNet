@@ -1,7 +1,7 @@
 from rdkit import Chem
 from rdkit.Chem import Draw
 
-def save_molecule_image(smile, filename="molecule.png"):
+def save_molecule_image(smile, filename):
     """
     Convert a SMILES string to a molecule image and save it to a file.
     
