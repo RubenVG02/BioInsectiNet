@@ -1,6 +1,6 @@
 import requests
 
-def obtain_sdf(smile="", name="molecule_sdf"):
+def obtain_sdf(smile, name="molecule_sdf"):
     """
     Obtain the SDF file of a molecule given its SMILES sequence.
 
