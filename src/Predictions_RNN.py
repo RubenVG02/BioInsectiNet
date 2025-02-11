@@ -12,7 +12,7 @@ from rdkit.Chem import RDConfig
 sys.path.append(os.path.join(RDConfig.RDContribDir, 'SA_Score'))
 import sascorer
 
-from train_rnn_generation import load_smiles, pack_padded_sequence, pad_packed_sequence
+from train_RNN_generation import load_smiles, pack_padded_sequence, pad_packed_sequence
 
 RDLogger.DisableLog('rdApp.*')  # To deactivate RDKit warnings during molecule generation
 
