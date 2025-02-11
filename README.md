@@ -1,6 +1,5 @@
 # BioInsectiNet: Neural Network and Genetic Algorithm Framework for Bioinsecticide Design
 
-
 ## Overview
 
 This project enables the discovery and design of novel bioinsecticides targeting specific proteins. It features tools for predicting toxicity, generating bioinsecticides, and obtaining 3D structures of the designed molecules. By leveraging neural networks for toxicity prediction and bioinsecticide generation, combined with genetic algorithms for design refinement, this project enhances the efficiency and specificity of bioinsecticide development.
@@ -10,16 +9,14 @@ This project enables the discovery and design of novel bioinsecticides targeting
 ### Preparing Data
 
 1. **FASTA Sequence**: Ensure your target protein is in FASTA format (amino acid sequence).
-
 2. **Neural Networks**: You need two neural networks:
+
    - **Toxicity Prediction**: Use `cnn_affinity.py` to train or utilize the pre-trained model.
    - **Bioinsecticide Generation**: Use `generate_rnn.py` to train or utilize the pre-trained model.
 
    Alternatively, use the pre-trained models located in the `definitive_models` folder.
+3. **Data**: Use data from databases such as Chembl, PubChem, or the provided "insect.csv".
 
-3. **Data**: Use data from databases such as Chembl, PubChem, or the provided "insect.csv".  
-  
-  
 ### CNN Usage (Affinity Prediction)
 
 To predict toxicity using the CNN model, run:
@@ -35,7 +32,7 @@ The program will return the toxicity of the designed bioinsecticides using the '
 To generate bioinsecticides using the RNN model, run:
 
 ```bash
-python predictions_RNN.py --model_path <path_model> --data_path <path_data_model> --num_molecules <num_generated_molecules> --min_length <min_length_smiles> --max_length <max_length_smiles> --temperature <temperature> --save_images <bool>
+python predictions_RNN.py --model_path <path_model> --data_path <path_data_model> --save_dir <save_dir> --num_molecules <num_generated_molecules> --min_length <min_length_smiles> --max_length <max_length_smiles> --temperature <temperature> --save_images <bool>
 
 ```
 
@@ -104,7 +101,6 @@ pip install -r requirements.txt
 - Obtaining the 3D structure of the designed bioinsecticides in different formats (SFD, PDB, etc.)
 - Fast and easy to use
 
-
 ## Future Improvements
 
 - Add more databases to the CNN
@@ -121,9 +117,3 @@ pip install -r requirements.txt
 - [Tensorflow](https://www.tensorflow.org/)
 - [Numpy](https://numpy.org/)
 - [Pandas](https://pandas.pydata.org/)
-
-
-
-
-
-
