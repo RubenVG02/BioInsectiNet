@@ -50,7 +50,7 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 
 ---
 
-### 5. **Model: `smiles_insects_v1.pth`**
+### 5. **Model: `insects_smiles_v1.pth`**
 
 - **Dataset**: Insect-specific drug-like molecules from ChEMBL.
 - **Description**: This model was trained on SMILES strings representing molecules that act as insecticides or insect-targeting drugs, sourced from the ChEMBL database. It is specialized for generating molecules with potential insecticidal activity.
