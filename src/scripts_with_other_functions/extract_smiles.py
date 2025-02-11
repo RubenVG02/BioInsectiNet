@@ -28,3 +28,12 @@ def get_percentile_90(file_path):
     
     return percentile_90
 
+with open("data\smiles\combined_longest.txt", 'r') as file:
+    smiles = file.readlines()
+
+smiles = [smile.strip() for smile in smiles]
+smiles = remove_duplicates(smiles)
+
+with open("data\smiles\combined_longest_no_duplicates.txt", 'w') as file:
+    for smile in smiles:
+        file.write(f"{smile}\n")
