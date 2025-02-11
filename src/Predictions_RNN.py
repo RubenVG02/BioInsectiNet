@@ -26,7 +26,7 @@ PAD_TOKEN = "<PAD>"
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate drug-like molecules using a pretrained RNN model.")
-    parser.add_argument("--model_path", type=str, default="models\generator\chembl_smiles_longest_v1.pth", help="Path to the trained model. By default, it uses the pretrained model trained on the ChEMBL dataset.")
+    parser.add_argument("--model_path", type=str, default="models\generator\insects_smiles_v1.pth", help="Path to the trained model. By default, it uses the pretrained model for generating insect drug-like molecules.")
     parser.add_argument("--data_path", type=str, help="Path to the SMILES dataset. By default, it uses the dataset used to train the model.")
     parser.add_argument("--save_dir", type=str, default="generated_molecules", help="Directory to save the generated molecules. By default, it saves the molecules in the 'generated_molecules' directory.")
     parser.add_argument("--num_molecules", type=int, default=250, help="Number of molecules to generate. By default, it generates 250 molecules.")
