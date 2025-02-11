@@ -35,7 +35,8 @@ The program will return the toxicity of the designed bioinsecticides using the '
 To generate bioinsecticides using the RNN model, run:
 
 ```bash
-python pretrained_rnn.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein>
+python predictions_RNN.py --model_path <path_model> --data_path <path_data_model> --num_molecules <num_generated_molecules> --min_length <min_length_smiles> --max_length <max_length_smiles> --temperature <temperature> --save_images <bool>
+
 ```
 
 The program will return the designed bioinsecticides using the 'generate' function.
@@ -60,7 +61,7 @@ python genetic_algorithm.py --smiles_list <smiles_list> --csv_file <path_to_csv_
 
 You can provide SMILES sequences directly, via a CSV file, or use an RNN model to guide the generation. The program will return the best SMILES sequence from the last generation.
 
-### Installation
+### 3D Representations
 
 To obtain the 3D structure of the designed bioinsecticides, run:
 
