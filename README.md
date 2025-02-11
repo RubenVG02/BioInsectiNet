@@ -60,7 +60,7 @@ python genetic_algorithm.py --smiles_list <smiles_list> --csv_file <path_to_csv_
 
 You can provide SMILES sequences directly, via a CSV file, or use an RNN model to guide the generation. The program will return the best SMILES sequence from the last generation.
 
-### Installation
+### 3D Representations
 
 To obtain the 3D structure of the designed bioinsecticides, run:
 
