@@ -46,7 +46,7 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 - **Training Details**:
   - Epochs: 50
   - Time per epoch: 5 minutes
-- **Use Case**: Suitable for generating larger molecules. As with the other `longest' models, Generation time is significantly high.
+- **Use Case**: Suitable for generating larger molecules. As with the other `longest' models, generation time is significantly high.
 
 ---
 
