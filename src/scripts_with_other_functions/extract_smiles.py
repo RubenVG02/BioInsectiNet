@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def extract_tsv_smiles(path_file, sep, usecols):
     df = pd.read_csv(path_file, sep=sep, usecols=usecols)
@@ -11,17 +12,19 @@ def write_smiles(smiles, path_file):
             f.write(f"{smile}\n")
 
 def remove_len(smiles):
-    return [smile for smile in smiles if len(smile) < 150]
+    return [smile for smile in smiles if len(smile) > 130]
 
 def remove_duplicates(smiles):
     return list(set(smiles))
 
+def get_percentile_90(file_path):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    
+    lengths = [len(line.strip()) for line in lines]
+    
+    percentile_90 = np.percentile(lengths, 90)
+    print(f"90th percentile: {percentile_90}")
+    
+    return percentile_90
 
-if __name__ == "__main__":
-
-    smiles = extract_tsv_smiles("data/BindingDB_All.tsv", sep="\t", usecols=["Ligand SMILES"])
-    smiles = remove_duplicates(smiles)
-    write_smiles(smiles, "data/bindingDB_smiles_All.txt")
-    smiles = remove_len(smiles)
-    write_smiles(smiles, "data/bindingDB_smiles_filtered.txt")
-    print("Done!")
