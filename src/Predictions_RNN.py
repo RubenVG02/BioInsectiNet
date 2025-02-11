@@ -6,6 +6,7 @@ from tqdm import tqdm
 import os
 from rdkit import RDLogger
 import csv
+import argparse
 
 import sys
 from rdkit.Chem import RDConfig
@@ -22,6 +23,18 @@ EMBEDDING_DIM = 256
 NUM_LAYERS = 3
 DROPOUT = 0.2
 PAD_TOKEN = "<PAD>"
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Generate drug-like molecules using a pretrained RNN model.")
+    parser.add_argument("--model_path", type=str, default="models\generator\chembl_smiles_longest_v1.pth", help="Path to the trained model. By default, it uses the pretrained model trained on the ChEMBL dataset.")
+    parser.add_argument("--data_path", type=str, help="Path to the SMILES dataset. By default, it uses the dataset used to train the model.")
+    parser.add_argument("--save_dir", type=str, default="generated_molecules", help="Directory to save the generated molecules. By default, it saves the molecules in the 'generated_molecules' directory.")
+    parser.add_argument("--num_molecules", type=int, default=250, help="Number of molecules to generate. By default, it generates 250 molecules.")
+    parser.add_argument("--min_length", type=int, default=50, help="Minimum length of generated SMILES. By default, it generates molecules with a minimum length of 20 characters.")
+    parser.add_argument("--max_length", type=int, default=500, help="Maximum length of generated SMILES. By default, it generates molecules with a maximum length of 500 characters.")
+    parser.add_argument("--temperature", type=float, default=1.0, help="Sampling temperature. By default, it uses a temperature of 1.0.")
+    parser.add_argument("--save_images", action='store_true', help="Save generated molecule images. By default, it does not save the images.")
+    return parser.parse_args()
 
 class ImprovedSMILESGenerator(nn.Module):
     def __init__(self, vocab_size, embedding_dim, hidden_size, num_layers, dropout, char_to_idx):
@@ -106,12 +119,11 @@ def save_molecule_image(smiles, filename):
     if mol is not None:
         Draw.MolToFile(mol, filename)
 
-def generate_druglike_molecules(model_path, char_to_idx, vocab_size, num_molecules=100, min_length = 30, max_length=100, temperature=1.0, save_images=False):
+def generate_druglike_molecules(model_path, char_to_idx, vocab_size, num_molecules=100, min_length = 30, max_length=100, temperature=1.0, save_images=False, output_dir="generated_molecules"):
     model = load_model(model_path, char_to_idx, vocab_size)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    output_dir = "generated_molecules"
     os.makedirs(output_dir, exist_ok=True)
 
     if save_images:
@@ -191,11 +203,11 @@ def calculate_sas(smiles):
 
 
 if __name__ == "__main__":
-    model_path = "models\generator\chembl_smiles_longest_v1.pth" 
-
-    file_path = "data/smiles" + os.sep + os.path.basename(model_path).split(".")[0].rsplit("_", 1)[0] + ".txt"
-    print(file_path)
-    smiles_list = load_smiles(file_path)
+    args = parse_arguments()
+    if args.data_path is None: 
+        args.data_path = "data/smiles" + os.sep + os.path.basename(args.model_path).split(".")[0].rsplit("_", 1)[0] + ".txt"
+    print(args.data_path)
+    smiles_list = load_smiles(args.data_path)
 
     # To include the PAD token and newline character
     unique_chars = sorted(set("".join(smiles_list)) | {'\n', PAD_TOKEN})
@@ -206,12 +218,13 @@ if __name__ == "__main__":
     
 
     druglike_molecules = generate_druglike_molecules(
-        model_path=model_path,
+        model_path=args.model_path,
         char_to_idx=char_to_idx,
         vocab_size=vocab_size,
-        num_molecules=250,  # Amount of molecules to generate
-        min_length=20,    # SMILES min length
-        max_length=500,    # SMILES max length
-        temperature=1,   # Temperature used for sampling
-        save_images=True   # Save molecule images 
+        num_molecules=args.num_molecules,
+        min_length=args.min_length,
+        max_length=args.max_length,
+        temperature=args.temperature,
+        save_images=args.save_images,
+        output_dir=args.save_dir
     )
