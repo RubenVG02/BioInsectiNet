@@ -20,4 +20,5 @@ dependencies:
       - tqdm # for the progress bar
       - nltk # for the BLEU score
       - sascorer # for the SA score
+      - argparse # for the command line arguments
 
