@@ -66,4 +66,4 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
     print("Cleaning process completed!")
     return f"{output_csv}"
 
-extract_smiles_from_csv("data\csv_smiles_chembl.csv", "data/Chembl_smiles.txt")
+extract_smiles_from_csv("insect.csv", "data/Smiles/insects_all_lengths.txt")
