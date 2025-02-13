@@ -50,7 +50,18 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 
 ---
 
-### 5. **Model: `insects_smiles_v1.pth`**
+### 5. **Model: `GDBMedChem_v1.pth`**
+
+- **Dataset**: GDBMedChem database.
+- **Description**: This model was trained on SMILES strings from the GDBMedChem database, which contains a diverse set of small, drug-like molecules. The dataset is known for its coverage of chemical space, making this model well-suited for generating novel, synthetically accessible molecules with potential drug-like properties.
+- **Training Details**:
+  - Epochs: 25
+  - Time per epoch: 45 minutes
+- **Use Case**: Generation of small molecules (less than 100 elements)
+
+---
+
+### 6. **Model: `insects_smiles_v1.pth`**
 
 - **Dataset**: Insect-specific drug-like molecules from ChEMBL.
 - **Description**: This model was trained on SMILES strings representing molecules that act as insecticides or insect-targeting drugs, sourced from the ChEMBL database. It is specialized for generating molecules with potential insecticidal activity.
