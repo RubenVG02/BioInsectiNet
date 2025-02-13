@@ -31,7 +31,7 @@ def parse_arguments():
     parser.add_argument("--save_dir", type=str, default="generated_molecules", help="Directory to save the generated molecules. By default, it saves the molecules in the 'generated_molecules' directory.")
     parser.add_argument("--num_molecules", type=int, default=250, help="Number of molecules to generate. By default, it generates 250 molecules.")
     parser.add_argument("--min_length", type=int, default=50, help="Minimum length of generated SMILES. By default, it generates molecules with a minimum length of 20 characters.")
-    parser.add_argument("--max_length", type=int, default=500, help="Maximum length of generated SMILES. By default, it generates molecules with a maximum length of 500 characters.")
+    parser.add_argument("--max_length", type=int, default=200, help="Maximum length of generated SMILES. By default, it generates molecules with a maximum length of 500 characters.")
     parser.add_argument("--temperature", type=float, default=1.0, help="Sampling temperature. By default, it uses a temperature of 1.0.")
     parser.add_argument("--save_images", action='store_true', help="Save generated molecule images. By default, it does not save the images.")
     return parser.parse_args()
