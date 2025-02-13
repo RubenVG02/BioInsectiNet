@@ -218,7 +218,7 @@ if __name__ == "__main__":
     # To include the PAD token and newline character
     unique_chars = sorted(set("".join(smiles_list)) | {'\n', PAD_TOKEN})'''
 
-    unique_chars_dict = load_unique_chars_dict("unique_chars_dict.json")
+    unique_chars_dict = load_unique_chars_dict("models/unique_chars_dict.json")
     unique_chars = unique_chars_dict[args.data_path]
     char_to_idx = {char: idx for idx, char in enumerate(unique_chars)}
     vocab_size = len(char_to_idx)  
