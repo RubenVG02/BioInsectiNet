@@ -11,17 +11,30 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import glob
 import numpy as np
+import argparse
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Generate drug-like molecules using a pretrained RNN model.")
+    parser.add_argument("--file_path", type=str, required=True, help="Path to the SMILES dataset.")
+    parser.add_argument("--epochs", type=int, default=100, help="Number of epochs to train the model. By default, it trains the model for 100 epochs.")
+    parser.add_argument("--batch_size", type=int, default=128, help="Batch size for training the model. By default, it uses a batch size of 128.")
+    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate for training the model. By default, it uses a learning rate of 1e-3.")
+    parser.add_argument("--patience", type=int, default=5, help="Number of epochs to wait before early stopping. By default, it uses a patience of 5.")
+    return parser.parse_args()
+
+args = parse_arguments()
 
 curr_date = str(time.time()).split(".")[0]
-BATCH_SIZE = 128
+BATCH_SIZE = args.batch_size
 HIDDEN_SIZE = 256  
 EMBEDDING_DIM = 256
 NUM_LAYERS = 3  
 DROPOUT = 0.2
-LR = 0.001
-EPOCHS = 50
+LR = args.lr
+EPOCHS = args.epochs
 PAD_TOKEN = "<PAD>"  
-EARLY_STOPPING_PATIENCE = 3  # Number of epochs to wait before early stopping
+EARLY_STOPPING_PATIENCE = args.patience  # Number of epochs to wait before early stopping
+
 
 def load_smiles(file_path):
     with open(file_path, "r") as f:
@@ -96,7 +109,9 @@ def get_percentile_90(smiles_list):
     return percentile_90
 
 
-def train_model(file_path, file_name):
+def train_model(file_path):
+
+    file_name = os.path.basename(file_path).split(".")[0]
     print("Loading data and tokenizing...")
     smiles_list = load_smiles(file_path)
     unique_chars = sorted(set("".join(smiles_list)) | {'\n', PAD_TOKEN})  # Include newline and padding token
@@ -111,7 +126,7 @@ def train_model(file_path, file_name):
         raise ValueError("Unknown characters in SMILES: {}".format(unknown_chars))
 
     print("Creating dataset and dataloader...")
-    if max(len(s) for s in smiles_list) > 160:
+    if max(len(s) for s in smiles_list) < 160:
         max_length = max(len(s) for s in smiles_list) + 1  # +1 to account for newline character
     else:
         max_length = int(get_percentile_90(smiles_list) + 1)  # using 90th percentile to set the max_length instead of the longest sequence (mainly used for the longest sequence dataset)
@@ -260,10 +275,6 @@ def train_model(file_path, file_name):
     plt.savefig(os.path.join(model_dir, f"metrics_{file_name}_{curr_date}.png"))
 
 if __name__ == "__main__":
-    file_path = "data/smiles/chembl_bindingDB_longest_combined.txt"
-    file_name = file_path.split("/")[-1].split(".")[0]
-    if not "/" in file_path:
-        print("Please provide the full path to the file using /.")
-        exit()
-    train_model(file_path=file_path, file_name=file_name)
+    #file_path = "data/smiles/chembl_smiles_longest.txt"
+    train_model(file_path=args.file_path)
     print("Done!")
