@@ -14,7 +14,7 @@ import numpy as np
 import argparse
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Generate drug-like molecules using a pretrained RNN model.")
+    parser = argparse.ArgumentParser(description="Train an RNN model to generate SMILES sequences.")
     parser.add_argument("--file_path", type=str, required=True, help="Path to the SMILES dataset.")
     parser.add_argument("--epochs", type=int, default=100, help="Number of epochs to train the model. By default, it trains the model for 100 epochs.")
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size for training the model. By default, it uses a batch size of 128.")
@@ -22,18 +22,8 @@ def parse_arguments():
     parser.add_argument("--patience", type=int, default=5, help="Number of epochs to wait before early stopping. By default, it uses a patience of 5.")
     return parser.parse_args()
 
-args = parse_arguments()
 
-curr_date = str(time.time()).split(".")[0]
-BATCH_SIZE = args.batch_size
-HIDDEN_SIZE = 256  
-EMBEDDING_DIM = 256
-NUM_LAYERS = 3  
-DROPOUT = 0.2
-LR = args.lr
-EPOCHS = args.epochs
-PAD_TOKEN = "<PAD>"  
-EARLY_STOPPING_PATIENCE = args.patience  # Number of epochs to wait before early stopping
+
 
 
 def load_smiles(file_path):
@@ -275,6 +265,18 @@ def train_model(file_path):
     plt.savefig(os.path.join(model_dir, f"metrics_{file_name}_{curr_date}.png"))
 
 if __name__ == "__main__":
-    #file_path = "data/smiles/chembl_smiles_longest.txt"
+    args = parse_arguments()
+
+    curr_date = str(time.time()).split(".")[0]
+    BATCH_SIZE = args.batch_size
+    HIDDEN_SIZE = 256  
+    EMBEDDING_DIM = 256
+    NUM_LAYERS = 3  
+    DROPOUT = 0.2
+    LR = args.lr
+    EPOCHS = args.epochs
+    PAD_TOKEN = "<PAD>"  
+    EARLY_STOPPING_PATIENCE = args.patience  # Number of epochs to wait before early stopping
+    
     train_model(file_path=args.file_path)
     print("Done!")
