@@ -22,9 +22,9 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 - **Dataset**: BindingDB SMILES with longer sequences.
 - **Description**: This model was trained on SMILES strings from the BindingDB database, specifically including only those with more than 150 elements. It is designed to generate larger and more complex molecular structures.
 - **Training Details**:
-  - Epochs: 50
+  - Epochs: 100
   - Time per epoch: 2 minutes
-- **Use Case**: Suitable for generating larger and more complex molecules. However, this model requires significantly more time for generation compared to `bindingDB_smiles_filtered_v1.pth`.
+- **Use Case**: Suitable for generating larger and more complex molecules (more than 150 elements). However, this model requires significantly more time for generation compared to `bindingDB_smiles_filtered_v1.pth`.
 
 ---
 
@@ -39,14 +39,14 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 
 ---
 
-### 4. **Model: `chembl_smiles_longest_v1.pth`**
+### 4. **Model: `chembl_smiles_longest_v2.pth`**
 
 - **Dataset**: ChEMBL SMILES with longer sequences.
 - **Description**: This model was trained on SMILES strings from the ChEMBL database, specifically including only those with more than 150 elements. It is designed to generate larger and more complex molecular structures.
 - **Training Details**:
-  - Epochs: 50
-  - Time per epoch: 5 minutes
-- **Use Case**: Suitable for generating larger molecules. As with the other `longest' models, generation time is significantly high.
+  - Epochs: 100
+  - Time per epoch: 2 minutes
+- **Use Case**: Suitable for generating larger molecules. As with the other `longest` models, generation time is significantly high.
 
 ---
 
