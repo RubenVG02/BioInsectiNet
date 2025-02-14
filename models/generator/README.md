@@ -27,8 +27,17 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 - **Use Case**: Suitable for generating larger and more complex molecules (more than 150 elements). However, this model requires significantly more time for generation compared to `bindingDB_smiles_filtered_v1.pth`.
 
 ---
+### 3. **Model: `chembl_bindingDB_longest_combined_v1.pth`**
 
-### 3. **Model: `chembl_smiles_filtered_v1.pth`**
+- **Dataset**: ChEMBL + BindingDB SMILES filtered by size.
+- **Description**: This model was trained with the combination of the longest SMILES from the ChEMBL and the BindingDB, filtered to include only with more than 150 elements. 
+- **Training Details**:
+  - Epochs: 100
+  - Time per epoch: 2 minutes
+- **Use Case**: Suitable for generating larger and more complex molecules (more than 150 elements).
+
+---
+### 4. **Model: `chembl_smiles_filtered_v1.pth`**
 
 - **Dataset**: ChEMBL SMILES filtered by size.
 - **Description**: This model was trained on SMILES strings from the ChEMBL database, filtered to include only those with fewer than 150 elements. The filtering reduces computational cost while maintaining generation effectiveness.
@@ -39,7 +48,7 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 
 ---
 
-### 4. **Model: `chembl_smiles_longest_v2.pth`**
+### 5. **Model: `chembl_smiles_longest_v2.pth`**
 
 - **Dataset**: ChEMBL SMILES with longer sequences.
 - **Description**: This model was trained on SMILES strings from the ChEMBL database, specifically including only those with more than 150 elements. It is designed to generate larger and more complex molecular structures.
@@ -50,7 +59,7 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 
 ---
 
-### 5. **Model: `GDBMedChem_v1.pth`**
+### 6. **Model: `GDBMedChem_v1.pth`**
 
 - **Dataset**: GDBMedChem database.
 - **Description**: This model was trained on SMILES strings from the GDBMedChem database, which contains a diverse set of small, drug-like molecules. The dataset is known for its coverage of chemical space, making this model well-suited for generating novel, synthetically accessible molecules with potential drug-like properties.
@@ -61,7 +70,7 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 
 ---
 
-### 6. **Model: `insects_smiles_v1.pth`**
+### 7. **Model: `insects_smiles_v1.pth`**
 
 - **Dataset**: Insect-specific drug-like molecules from ChEMBL.
 - **Description**: This model was trained on SMILES strings representing molecules that act as insecticides or insect-targeting drugs, sourced from the ChEMBL database. It is specialized for generating molecules with potential insecticidal activity.
