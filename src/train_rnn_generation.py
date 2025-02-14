@@ -10,6 +10,7 @@ import os
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import glob
+import numpy as np
 
 curr_date = str(time.time()).split(".")[0]
 BATCH_SIZE = 128
@@ -49,7 +50,6 @@ class SMILESDataset(Dataset):
         else:
             encoded = encoded[:self.max_length]  # Truncate the sequence if it's longer than max_length
         
-        # Convertir a tensores
         inputs = torch.tensor(encoded[:-1], dtype=torch.long)
         targets = torch.tensor(encoded[1:], dtype=torch.long)
         lengths = torch.tensor(len(encoded) - 1, dtype=torch.long)  
@@ -88,6 +88,13 @@ class ImprovedSMILESGenerator(nn.Module):
         output = self.dropout_layer(output)
         output = self.fc(output)
         return output, hidden
+    
+def get_percentile_90(smiles_list):
+    lengths = [len(smile) for smile in smiles_list]
+    percentile_90 = np.percentile(lengths, 90)
+    print(f"90th percentile: {percentile_90}")
+    return percentile_90
+
 
 def train_model(file_path, file_name):
     print("Loading data and tokenizing...")
@@ -104,7 +111,12 @@ def train_model(file_path, file_name):
         raise ValueError("Unknown characters in SMILES: {}".format(unknown_chars))
 
     print("Creating dataset and dataloader...")
-    max_length = max(len(s) for s in smiles_list) + 1  # +1 to account for newline character
+    if max(len(s) for s in smiles_list) > 160:
+        max_length = max(len(s) for s in smiles_list) + 1  # +1 to account for newline character
+    else:
+        max_length = int(get_percentile_90(smiles_list) + 1)  # using 90th percentile to set the max_length instead of the longest sequence (mainly used for the longest sequence dataset)
+
+    print(f"Max length: {max_length}")
     
     train_smiles, val_smiles = train_test_split(smiles_list, test_size=0.2, random_state=42)
     train_dataset = SMILESDataset(train_smiles, char_to_idx, max_length)
@@ -248,7 +260,7 @@ def train_model(file_path, file_name):
     plt.savefig(os.path.join(model_dir, f"metrics_{file_name}_{curr_date}.png"))
 
 if __name__ == "__main__":
-    file_path = "data/smiles/GDBMedChem_cleaned.txt"
+    file_path = "data/smiles/chembl_bindingDB_longest_combined.txt"
     file_name = file_path.split("/")[-1].split(".")[0]
     if not "/" in file_path:
         print("Please provide the full path to the file using /.")
