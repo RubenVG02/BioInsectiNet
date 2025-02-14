@@ -97,7 +97,6 @@ def generate_smiles(model, start_char, max_length, temperature=1.0):
 
         generated_seq.append(next_char)
         current_char = next_char
-    print("".join(generated_seq))
     return "".join(generated_seq)
 
 def is_druglike(smiles):
