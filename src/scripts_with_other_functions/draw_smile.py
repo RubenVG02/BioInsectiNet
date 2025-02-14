@@ -18,5 +18,5 @@ def save_molecule_image(smile, filename):
         print("Error: Invalid SMILES string or molecule could not be created.")
 
 # Example usage
-smile = "Nc1ccnc2c1ccn2[C@@H]1O[C@H](CO)C[C@H]1O"
+smile = "c1C[C@H](NC(=O)[C@@H]1C[C@@H](O)CN1C(=O)[C@@H](NC(=O)CCCCCCCCCNC(=O)CCc1ccc(-c2ccc(/C=C/c3ccccc3)c3ccccc32)on1)C(C)C)C(=O)NCC(N)=O"
 save_molecule_image(smile, "molecule.png")
