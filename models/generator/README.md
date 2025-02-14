@@ -17,14 +17,14 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 
 ---
 
-### 2. **Model: `bindingDB_smiles_longest_v1.pth`**
+### 2. **Model: `bindingDB_smiles_longest_v2.pth`**
 
 - **Dataset**: BindingDB SMILES with longer sequences.
 - **Description**: This model was trained on SMILES strings from the BindingDB database, specifically including only those with more than 150 elements. It is designed to generate larger and more complex molecular structures.
 - **Training Details**:
   - Epochs: 50
   - Time per epoch: 2 minutes
-- **Use Case**: Suitable for generating larger and more complex molecules. However, this model requires significantly more time for generation compared to Model 1.
+- **Use Case**: Suitable for generating larger and more complex molecules. However, this model requires significantly more time for generation compared to `bindingDB_smiles_filtered_v1.pth`.
 
 ---
 
@@ -77,11 +77,10 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 To use any of the trained models for molecule generation, follow these steps:
 
 1. Navigate to the `models/generator` directory:
+
    ```bash
    cd models/generator
    ```
-
-
 2. Generate molecules using a trained model:
 
 ```bash
