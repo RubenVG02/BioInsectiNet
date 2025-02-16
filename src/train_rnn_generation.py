@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 import glob
 import numpy as np
 import argparse
+import json
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Train an RNN model to generate SMILES sequences.")
@@ -21,6 +22,7 @@ def parse_arguments():
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size for training the model. By default, it uses a batch size of 128.")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate for training the model. By default, it uses a learning rate of 1e-3.")
     parser.add_argument("--patience", type=int, default=5, help="Number of epochs to wait before early stopping. By default, it uses a patience of 5.")
+    parser.add_argument("--json_epochs_path", type=str, default="training_epochs.json", help="JSON file to save the training epochs.")
     return parser.parse_args()
 
 
@@ -99,6 +101,19 @@ def get_percentile_90(smiles_list):
     print(f"90th percentile: {percentile_90}")
     return percentile_90
 
+
+def save_epoch_state(json_epochs_path, subset, current_epoch):
+
+    epoch_state = {}
+
+    if os.path.exists(json_epochs_path):
+        with open(json_epochs_path, "r") as f:
+            epoch_state = json.load(f)
+
+    epoch_state[subset] = current_epoch
+
+    with open(json_epochs_path, "w") as f:
+        json.dump(epoch_state, f, indent=4)
 
 
 def train_model(file_path):
@@ -247,6 +262,9 @@ def train_model(file_path):
             if patience_counter >= EARLY_STOPPING_PATIENCE:
                 print("Early stopping triggered.")
                 break
+
+        if args.json_epochs_path:
+            save_epoch_state("training_epochs.json", file_name, epoch + 1)
 
     print("Training finished!")
 
