@@ -54,8 +54,8 @@ class SMILESDataset(Dataset):
             encoded = encoded[:self.max_length]  # Truncate the sequence if it's longer than max_length
         
         inputs = torch.tensor(encoded[:-1], dtype=torch.long)
-        targets = torch.tensor(encoded[1:], dtype=torch.long)
-        lengths = torch.tensor(len(encoded) - 1, dtype=torch.long)  
+        targets = torch.tensor(encoded[1:], dtype=torch.long) # Target is the next character in the sequence to predict
+        lengths = torch.tensor(len(encoded) - 1, dtype=torch.long)
         
         return inputs, targets, lengths
 
@@ -99,11 +99,21 @@ def get_percentile_90(smiles_list):
     return percentile_90
 
 
+
 def train_model(file_path):
 
     file_name = os.path.basename(file_path).split(".")[0]
     print("Loading data and tokenizing...")
     smiles_list = load_smiles(file_path)
+    if max(len(s) for s in smiles_list) < 160:
+        max_length = max(len(s) for s in smiles_list) + 1  # +1 to account for newline character
+        print(f"Max length: {max_length}")
+    else:
+        max_length = int(get_percentile_90(smiles_list) + 1)  # using 90th percentile to set the max_length instead of the longest sequence (mainly used for the longest sequence dataset)
+        print("Max length set to 90th percentile." + str(max_length)) 
+
+    
+
     unique_chars = sorted(set("".join(smiles_list)) | {'\n', PAD_TOKEN})  # Include newline and padding token
     
     char_to_idx = {char: idx for idx, char in enumerate(unique_chars)}
@@ -116,12 +126,7 @@ def train_model(file_path):
         raise ValueError("Unknown characters in SMILES: {}".format(unknown_chars))
 
     print("Creating dataset and dataloader...")
-    if max(len(s) for s in smiles_list) < 160:
-        max_length = max(len(s) for s in smiles_list) + 1  # +1 to account for newline character
-    else:
-        max_length = int(get_percentile_90(smiles_list) + 1)  # using 90th percentile to set the max_length instead of the longest sequence (mainly used for the longest sequence dataset)
-
-    print(f"Max length: {max_length}")
+    
     
     train_smiles, val_smiles = train_test_split(smiles_list, test_size=0.2, random_state=42)
     train_dataset = SMILESDataset(train_smiles, char_to_idx, max_length)
@@ -277,6 +282,6 @@ if __name__ == "__main__":
     EPOCHS = args.epochs
     PAD_TOKEN = "<PAD>"  
     EARLY_STOPPING_PATIENCE = args.patience  # Number of epochs to wait before early stopping
-    
+
     train_model(file_path=args.file_path)
     print("Done!")
