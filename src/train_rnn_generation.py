@@ -16,6 +16,7 @@ import argparse
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Train an RNN model to generate SMILES sequences.")
     parser.add_argument("--file_path", type=str, required=True, help="Path to the SMILES dataset.")
+    parser.add_argument("--output_dir", type=str, default="models/generator", help="Directory to save the trained model. By default, it saves the model in the 'models/generator' directory.")
     parser.add_argument("--epochs", type=int, default=100, help="Number of epochs to train the model. By default, it trains the model for 100 epochs.")
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size for training the model. By default, it uses a batch size of 128.")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate for training the model. By default, it uses a learning rate of 1e-3.")
@@ -144,7 +145,7 @@ def train_model(file_path):
     model.to(device)
 
     # Verify if there are pre-trained models
-    model_dir = "models/generator"
+    model_dir = args.output_dir
     model_pattern = os.path.join(model_dir, f"{file_name}_*.pth")  
     model_files = glob.glob(model_pattern)  
 
