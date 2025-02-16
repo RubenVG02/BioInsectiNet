@@ -12,14 +12,17 @@ def parse_args():
     parser.add_argument("--file_path", type=str, required=True, help="Path to the input .txt file")
     parser.add_argument("--num_subsets", type=int, default=10, help="Number of subsets to create (default: 10)")
     parser.add_argument("--subset_size", type=int, default=250000, help="Size of each subset (default: 250000)")
-    parser.add_argument("--clusters", type=int, default=200, help="Number of clusters for diversity balancing (default: 200)")
-    parser.add_argument("--batch_size", type=int, default=10000, help="Batch size for clustering (default: 500)")
+    parser.add_argument("--clusters", type=int, default=200, help="Number of clusters for diversity balancing. More clusters, more complexity (default: 200)")
+    parser.add_argument("--batch_size", type=int, default=10000, help="Batch size for clustering (default: 10000)")
     parser.add_argument("--n_bits", type=int, default=1024, help="Number of bits for Morgan fingerprints (default: 1024)")
     return parser.parse_args()
 
-def load_smiles(file_path):
+def load_smiles(file_path, num_subsets, subset_size):
     with open(file_path, "r") as f:
         smiles_list = [line.strip() for line in f if line.strip()]
+
+        if len(smiles_list) <= num_subsets * subset_size:
+            raise ValueError("Dataset is too small for the specified number of subsets and subset size. Please use a larger dataset or reduce the number of subsets and/or subset size.")
     return smiles_list
 
 def smiles_to_fingerprint(smiles, radius=2, n_bits=1024):
@@ -30,17 +33,19 @@ def smiles_to_fingerprint(smiles, radius=2, n_bits=1024):
 
 def compute_fingerprints(smiles_list, n_bits):
     with multiprocessing.Pool() as pool:
-        fingerprints = list(tqdm(pool.imap(smiles_to_fingerprint, smiles_list), total=len(smiles_list), desc="Computing fingerprints"))
+        fingerprints = list(tqdm(pool.imap(smiles_to_fingerprint, smiles_list, n_bits), total=len(smiles_list), desc="Computing fingerprints"))
     valid_data = [(smi, fp) for smi, fp in zip(smiles_list, fingerprints) if fp is not None]
     return valid_data
 
 def cluster_smiles(fingerprints, n_clusters, batch_size):
-    X = np.vstack([fp for _, fp in fingerprints])  # Convert list to numpy array efficiently
-    kmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42, batch_size=batch_size, n_init=10)
-    
-    for batch in tqdm(np.array_split(X, len(X) // batch_size), desc="Training MiniBatchKMeans"):
+    X = np.vstack([fp for _, fp in fingerprints]) 
+    kmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42, batch_size=batch_size, n_init=5)
+
+    num_batches = (len(X) + batch_size - 1) // batch_size
+    for i in tqdm(range(0, len(X), batch_size), total=num_batches, desc="Training MiniBatchKMeans"):
+        batch = X[i:i + batch_size]  
         kmeans.partial_fit(batch)
-    
+
     cluster_labels = kmeans.predict(X)
     return [(smiles, cluster) for (smiles, _), cluster in zip(fingerprints, cluster_labels)]
 
@@ -64,18 +69,19 @@ def stratified_sampling(clustered_data, num_subsets, subset_size):
     return final_subsets
 
 def save_subsets(subsets, name_input):
-    os.makedirs(f"data/smiles/{name_input}", exist_ok=True)
+    os.makedirs(f"data/smiles/{name_input}_subsets", exist_ok=True)
     for i, subset in enumerate(subsets):
-        filename = f"data/smiles/{name_input}/{name_input}_subset_{i+1}.txt"
+        filename = f"data/smiles/{name_input}_subsets/{name_input}_subset_{i+1}.txt"
         with open(filename, "w") as f:
             f.writelines(smi + "\n" for smi in subset)
 
 def main():
     args = parse_args()
-    name_input = os.path.basename(args.file_path) + "_subsets"
+    name_dir = os.path.basename(args.file_path)
+    name_dir = name_dir.replace(".txt", "").replace(".", "_")
 
     print("Loading dataset...")
-    smiles_list = load_smiles(args.file_path)
+    smiles_list = load_smiles(args.file_path, args.num_subsets, args.subset_size)
 
     print("Computing fingerprints in parallel...")
     fingerprints = compute_fingerprints(smiles_list, args.n_bits)
@@ -87,7 +93,7 @@ def main():
     subsets = stratified_sampling(clustered_data, args.num_subsets, args.subset_size)
 
     print("Saving subsets...")
-    save_subsets(subsets, name_input)
+    save_subsets(subsets, name_dir)
 
     print("Process completed!")
 
