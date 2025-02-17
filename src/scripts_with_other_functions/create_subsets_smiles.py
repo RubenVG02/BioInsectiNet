@@ -12,7 +12,7 @@ def parse_args():
     parser.add_argument("--file_path", type=str, required=True, help="Path to the input .txt file")
     parser.add_argument("--num_subsets", type=int, default=10, help="Number of subsets to create (default: 10)")
     parser.add_argument("--subset_size", type=int, default=250000, help="Size of each subset (default: 250000)")
-    parser.add_argument("--clusters", type=int, default=200, help="Number of clusters for diversity balancing. More clusters, more complexity (default: 200)")
+    parser.add_argument("--clusters", type=int, default=500, help="Number of clusters for diversity balancing. More clusters, more complexity (default: 500)")
     parser.add_argument("--batch_size", type=int, default=10000, help="Batch size for clustering (default: 10000)")
     parser.add_argument("--n_bits", type=int, default=1024, help="Number of bits for Morgan fingerprints (default: 1024)")
     return parser.parse_args()
