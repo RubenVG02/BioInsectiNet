@@ -87,12 +87,21 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 - **Training Details**:
   - Epochs: 25
   - Time per epoch: 45 minutes
-  - Detailed logs available in `models\generator\GDBMedChem_subsets\epoch_log.json`
 - **Use Case**:  Generation of small complex molecules (<100 elements).
+---
+
+### 9. **Model: `GDB_17_druglike_8_million_subset_{1-10}.pth`**
+
+- **Dataset**: Subsets of GDB-17 drug-like compounds (10 models, each trained on 250k SMILES)..
+- **Description**: This set of models was trained on subsets of the GDB-17 dataset, specifically filtered for drug-like compounds. The subsets were selected using molecular fingerprints and K-means clustering to ensure a balanced chemical distribution. This approach allows for more efficient training and significantly faster molecule generation compared to a model trained on the full dataset.
+  - Epochs: 50
+  - Time per epoch: 2 minutes
+  - Detailed logs available in `models\generator\GDB_17_druglike_8_million_subsets\epoch_log.json`
+- **Use Case**:  Faster generation of small complex molecules (<100 elements).
 
 ---
 
-### 9. **Model: `insects_smiles_v1.pth`**
+### 10. **Model: `insects_smiles_v1.pth`**
 
 - **Dataset**: Insect-specific drug-like molecules from ChEMBL.
 - **Description**: This model was trained on SMILES strings representing molecules that act as insecticides or insect-targeting drugs, sourced from the ChEMBL database. It is specialized for generating molecules with potential insecticidal activity.
