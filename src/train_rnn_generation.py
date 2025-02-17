@@ -102,17 +102,19 @@ def get_percentile_90(smiles_list):
     return percentile_90
 
 
-def save_epoch_state(json_epochs_path, subset, current_epoch):
-
+def save_epoch_state(json_epochs_path, subset, current_epoch, early_stop=False):
     epoch_state = {}
     if os.path.exists(json_epochs_path):
         with open(json_epochs_path, "r") as f:
             epoch_state = json.load(f)
-    epoch_state[subset] = current_epoch
+    
+    if early_stop:
+        epoch_state[subset] = (current_epoch, True)
+    else:
+        epoch_state[subset] = (current_epoch, False)
+    
     with open(json_epochs_path, "w") as f:
         json.dump(epoch_state, f, indent=4)
-    
-
 
 def train_model(file_path):
 
@@ -200,7 +202,6 @@ def train_model(file_path):
 
                 total_loss += loss.item()
 
-                # Calcular BLEU Score
                 bleu_scores_batch = []
                 predicted = torch.argmax(outputs, dim=-1).cpu().numpy()
                 targets_cpu = targets.cpu().numpy()
@@ -258,7 +259,13 @@ def train_model(file_path):
         else:
             patience_counter += 1
             if patience_counter >= EARLY_STOPPING_PATIENCE:
+
                 print("Early stopping triggered.")
+                if args.log_path is not None:
+                    print("Saving epoch state...")
+                    if not "/" in args.log_path:
+                        args.log_path = os.path.join(model_dir, args.log_path)
+                    save_epoch_state(args.log_path, file_name, epoch + 1, early_stop=True)
                 break
 
         if args.log_path is not None:
