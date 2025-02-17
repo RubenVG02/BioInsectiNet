@@ -8,6 +8,7 @@ from rdkit import RDLogger
 import csv
 import argparse
 import json
+import re
 
 import sys
 from rdkit.Chem import RDConfig
@@ -31,10 +32,11 @@ def parse_arguments():
     parser.add_argument("--data_path", type=str, help="Path to the SMILES dataset. By default, it uses the dataset used to train the model.")
     parser.add_argument("--save_dir", type=str, default="generated_molecules", help="Directory to save the generated molecules. By default, it saves the molecules in the 'generated_molecules' directory.")
     parser.add_argument("--num_molecules", type=int, default=250, help="Number of molecules to generate. By default, it generates 250 molecules.")
-    parser.add_argument("--min_length", type=int, default=20, help="Minimum length of generated SMILES. By default, it generates molecules with a minimum length of 20 characters.")
+    parser.add_argument("--min_length", type=int, default=50, help="Minimum length of generated SMILES. By default, it generates molecules with a minimum length of 20 characters.")
     parser.add_argument("--max_length", type=int, default=150, help="Maximum length of generated SMILES. By default, it generates molecules with a maximum length of 500 characters.")
     parser.add_argument("--temperature", type=float, default=1.0, help="Sampling temperature. By default, it uses a temperature of 1.0.")
     parser.add_argument("--save_images", action='store_true', help="Save generated molecule images. By default, it does not save the images.")
+    parser.add_argument("--json_file", type=str, default="models/unique_chars_dict.json", help="Path to the JSON file containing the unique characters dictionary.")
     return parser.parse_args()
 
 class ImprovedSMILESGenerator(nn.Module):
@@ -206,24 +208,30 @@ def load_unique_chars_dict(input_file):
     with open(input_file, "r") as f:
         return json.load(f)
 
+def get_filename_regex_json(json_path, base_name):
+    with open(json_path, 'r') as file:
+        json_data = json.load(file)
+    for path in json_data.keys():
+        if re.search(rf"\\{re.escape(base_name)}\.txt$", path):
+            print(f"Found: {path}")
+            return path
+    raise ValueError(f"File with base name '{base_name}' not found in JSON.")
+
 
 
 if __name__ == "__main__":
     args = parse_arguments()
     if args.data_path is None: 
-        args.data_path = "data/smiles" + os.sep + os.path.basename(args.model_path).split(".")[0].rsplit("_", 1)[0] + ".txt"
+        base_name = os.path.basename(args.model_path).split(".")[0].rsplit("_", 1)[0]
+        args.data_path = get_filename_regex_json(args.json_file, base_name)
+        if not os.path.exists(args.data_path):
+            raise ValueError("The data path must be specified if the default path does not exist.")
+    
     print(args.data_path)
-    ''' smiles_list = load_smiles(args.data_path)
-
-    # To include the PAD token and newline character
-    unique_chars = sorted(set("".join(smiles_list)) | {'\n', PAD_TOKEN})'''
-
     unique_chars_dict = load_unique_chars_dict("models/unique_chars_dict.json")
     unique_chars = unique_chars_dict[args.data_path]
     char_to_idx = {char: idx for idx, char in enumerate(unique_chars)}
     vocab_size = len(char_to_idx)  
-
-    
 
     druglike_molecules = generate_druglike_molecules(
         model_path=args.model_path,
