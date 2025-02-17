@@ -27,6 +27,7 @@ def create_unique_chars_dict(file_paths):
         print(percentile_90)
         
         # If the 90th percentile is greater than 155, truncate the data to that length
+        # We use the 90th percentile length as a heuristic to avoid truncating too much data and also to improve the training speed and prediction quality
         if percentile_90 > 155:
             print("Truncating data to 90th percentile length.")
             smiles_list = truncate_data_90_percentile(smiles_list, 155) # Truncate to 155 characters
@@ -50,8 +51,8 @@ def ensure_directory_exists(directory):
         print(f"Created directory: {directory}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Process SMILES files and compute unique characters.")
-    parser.add_argument("--input_dir", type=str, default="data/smiles", help="Directory containing SMILES files. Each file should contain SMILES strings separated by newlines.")
+    parser = argparse.ArgumentParser(description="Process SMILES files and compute unique characters for every .txt file inside an specific dir and its subdirectories.")
+    parser.add_argument("--input_dir", type=str, default="data/smiles", help="Directory containing SMILES files. Each file should contain SMILES strings separated by newlines. Default: data/smiles")
     parser.add_argument("--output_file", type=str, default= "models/unique_chars_dict.json", help="Output JSON file to save unique characters dictionary. Default: unique_chars_dict.json in the models directory.")
     args = parser.parse_args()
 
