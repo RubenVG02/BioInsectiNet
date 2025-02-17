@@ -1,0 +1,42 @@
+{
+    "GDBMedChem_subset_1": [
+        44,
+        true
+    ],
+    "GDBMedChem_subset_10": [
+        40,
+        true
+    ],
+    "GDBMedChem_subset_2": [
+        44,
+        true
+    ],
+    "GDBMedChem_subset_3": [
+        34,
+        true
+    ],
+    "GDBMedChem_subset_4": [
+        41,
+        true
+    ],
+    "GDBMedChem_subset_5": [
+        40,
+        true
+    ],
+    "GDBMedChem_subset_6": [
+        37,
+        true
+    ],
+    "GDBMedChem_subset_7": [
+        36,
+        true
+    ],
+    "GDBMedChem_subset_8": [
+        34,
+        true
+    ],
+    "GDBMedChem_subset_9": [
+        32,
+        true
+    ]
+}
