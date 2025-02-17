@@ -20,14 +20,16 @@ def parse_arguments():
     parser.add_argument("--output_dir", type=str, default="models/generator", help="Directory to save the trained model. By default, it saves the model in the 'models/generator' directory.")
     parser.add_argument("--epochs", type=int, default=100, help="Number of epochs to train the model. By default, it trains the model for 100 epochs.")
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size for training the model. By default, it uses a batch size of 128.")
+    parser.add_argument("--embedding_dim", type=int, default=256, help="Dimension of the embedding layer. By default, it uses an embedding dimension of 256.")
+    parser.add_argument("--hidden_size", type=int, default=256, help="Hidden size of the LSTM layer. By default, it uses a hidden size of 256.")
+    parser.add_argument("--num_layers", type=int, default=3, help="Number of layers in the LSTM. By default, it uses 3 layers.")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate for training the model. By default, it uses a learning rate of 1e-3.")
     parser.add_argument("--patience", type=int, default=5, help="Number of epochs to wait before early stopping. By default, it uses a patience of 5.")
+    parser.add_argument("--log", action="store_true", help="If set, logs will be saved to the default log_path ('training_epochs.json').")
     parser.add_argument("--log_path", type=str, default="training_epochs.json", help="JSON file to save the training epochs. Useful for subset training")
+    parser.add_argument("--custom_name", type=str, default=None, help="Custom name for the model file. By default, it uses the file name of the dataset.")
+    parser.add_argument("--filter_percentile", type=bool, default=True, help="Filter the dataset to the 90th percentile length.")
     return parser.parse_args()
-
-
-
-
 
 def load_smiles(file_path):
     with open(file_path, "r") as f:
@@ -95,9 +97,9 @@ class ImprovedSMILESGenerator(nn.Module):
         output = self.fc(output)
         return output, hidden
     
-def get_percentile_90(smiles_list):
+def get_percentile_95(smiles_list):
     lengths = [len(smile) for smile in smiles_list]
-    percentile_90 = np.percentile(lengths, 90)
+    percentile_90 = np.percentile(lengths, 95)
     print(f"90th percentile: {percentile_90}")
     return percentile_90
 
@@ -116,17 +118,24 @@ def save_epoch_state(json_epochs_path, subset, current_epoch, early_stop=False):
     with open(json_epochs_path, "w") as f:
         json.dump(epoch_state, f, indent=4)
 
-def train_model(file_path):
-
-    file_name = os.path.basename(file_path).split(".")[0]
+def train_model():
+    if not args.custom_name:
+        file_name = os.path.basename(args.file_path).split(".")[0]
+    else:
+        file_name = args.custom_name
     print("Loading data and tokenizing...")
-    smiles_list = load_smiles(file_path)
-    if max(len(s) for s in smiles_list) < 160:
+    smiles_list = load_smiles(args.file_path)
+    print(max(len(s) for s in smiles_list))
+    if args.filter_percentile:
+        if max(len(s) for s in smiles_list) < 160:
+            max_length = max(len(s) for s in smiles_list) + 1  # +1 to account for newline character
+            print(f"Max length: {max_length}")
+        else:
+            max_length = int(get_percentile_95(smiles_list) + 1)  # using 90th percentile to set the max_length instead of the longest sequence (mainly used for the longest sequence dataset)
+            print("Max length set to 90th percentile." + str(max_length)) 
+    else:
         max_length = max(len(s) for s in smiles_list) + 1  # +1 to account for newline character
         print(f"Max length: {max_length}")
-    else:
-        max_length = int(get_percentile_90(smiles_list) + 1)  # using 90th percentile to set the max_length instead of the longest sequence (mainly used for the longest sequence dataset)
-        print("Max length set to 90th percentile." + str(max_length)) 
 
     
 
@@ -148,14 +157,14 @@ def train_model(file_path):
     train_dataset = SMILESDataset(train_smiles, char_to_idx, max_length)
     val_dataset = SMILESDataset(val_smiles, char_to_idx, max_length)
     
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, 
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, 
                               collate_fn=lambda x: collate_fn(x, char_to_idx))
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, 
+    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, 
                             collate_fn=lambda x: collate_fn(x, char_to_idx))
 
-    model = ImprovedSMILESGenerator(len(char_to_idx), EMBEDDING_DIM, HIDDEN_SIZE, NUM_LAYERS, DROPOUT, char_to_idx)
+    model = ImprovedSMILESGenerator(len(char_to_idx), args.embedding_dim, args.hidden_size , args.num_layers, DROPOUT, char_to_idx)
     criterion = nn.CrossEntropyLoss(ignore_index=char_to_idx[PAD_TOKEN])  
-    optimizer = optim.AdamW(model.parameters(), lr=LR, weight_decay=1e-5)
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-5)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
@@ -183,13 +192,13 @@ def train_model(file_path):
     min_loss = float("inf")
     patience_counter = 0
 
-    for epoch in range(EPOCHS):
+    for epoch in range(args.epochs):
         model.train()
         total_loss = 0
         total_bleu = 0
         num_batches = len(train_loader)
 
-        with tqdm(train_loader, desc=f"Epoch {epoch + 1}/{EPOCHS}", unit="batch") as tepoch:
+        with tqdm(train_loader, desc=f"Epoch {epoch + 1}/{args.epochs}", unit="batch") as tepoch:
             for inputs, targets, lengths in tepoch:
                 inputs, targets, lengths = inputs.to(device), targets.to(device), lengths.to(device)
                 optimizer.zero_grad()
@@ -216,7 +225,7 @@ def train_model(file_path):
 
         avg_loss = total_loss / num_batches
         avg_bleu = total_bleu / num_batches
-        print(f"Epoch {epoch + 1}/{EPOCHS}, Loss: {avg_loss:.4f}, BLEU Score: {avg_bleu:.4f}")
+        print(f"Epoch {epoch + 1}/{args.epochs}, Loss: {avg_loss:.4f}, BLEU Score: {avg_bleu:.4f}")
 
         model.eval()
         val_loss = 0
@@ -258,7 +267,7 @@ def train_model(file_path):
             torch.save(model.state_dict(), os.path.join(model_dir, f"{file_name}_{curr_date}.pth"))
         else:
             patience_counter += 1
-            if patience_counter >= EARLY_STOPPING_PATIENCE:
+            if patience_counter >= args.patience:
 
                 print("Early stopping triggered.")
                 if args.log_path is not None:
@@ -268,7 +277,7 @@ def train_model(file_path):
                     save_epoch_state(args.log_path, file_name, epoch + 1, early_stop=True)
                 break
 
-        if args.log_path is not None:
+        if args.log:
             print("Saving epoch state...")
             if not "/" in args.log_path:
                 args.log_path = os.path.join(model_dir, args.log_path)
@@ -300,15 +309,8 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     curr_date = str(time.time()).split(".")[0]
-    BATCH_SIZE = args.batch_size
-    HIDDEN_SIZE = 256  
-    EMBEDDING_DIM = 256
-    NUM_LAYERS = 3  
     DROPOUT = 0.2
-    LR = args.lr
-    EPOCHS = args.epochs
     PAD_TOKEN = "<PAD>"  
-    EARLY_STOPPING_PATIENCE = args.patience  # Number of epochs to wait before early stopping
 
-    train_model(file_path=args.file_path)
+    train_model()
     print("Done!")
