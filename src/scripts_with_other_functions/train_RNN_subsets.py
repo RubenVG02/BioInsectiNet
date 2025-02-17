@@ -61,7 +61,9 @@ def main():
         args.data_dir = select_dir()
         print(f"Selected directory: {args.data_dir}")
 
+    
     subsets = os.listdir(args.data_dir)
+
 
     if args.models_dir is None:
         print("No models directory specified. Saving models in models/generator/{os.path.basename(args.data_dir)}")
@@ -80,7 +82,6 @@ def main():
         if epoch_log[subset][0] >= args.epochs or epoch_log[subset][1] == True: # If the model has already been trained for the specified number of epochs or if early stopping was triggered (therefore, the model is already trained).
             print(f"Model for subset {subset} already trained for {args.epochs} epochs. Skipping...")
             continue
-        print(f"Training model for subset {subset}...")
         train_subsets(subset, args.models_dir, args.epochs - epoch_log[subset][0], args.batch_size, args.learning_rate, args.log_file, args.data_dir)
 
     print("All models trained successfully!")
