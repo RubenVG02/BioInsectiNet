@@ -1,6 +1,7 @@
 import json
 import os
 import numpy as np
+import argparse
 
 PAD_TOKEN = "<PAD>"
 
@@ -43,9 +44,32 @@ def load_unique_chars_dict(input_file):
     with open(input_file, "r") as f:
         return json.load(f)
 
-directory = "data/smiles"
-file_paths = [os.path.join(directory, file) for file in os.listdir(directory) if os.path.isfile(os.path.join(directory, file))]
+def ensure_directory_exists(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"Created directory: {directory}")
 
-unique_chars_dict = create_unique_chars_dict(file_paths)
-save_unique_chars_dict(unique_chars_dict, "models/test_unique_chars_dict.json")
-print(unique_chars_dict)
+def main():
+    parser = argparse.ArgumentParser(description="Process SMILES files and compute unique characters.")
+    parser.add_argument("--input_dir", type=str, required=True, default="data/smiles", help="Directory containing SMILES files. Each file should contain SMILES strings separated by newlines.")
+    parser.add_argument("--output_file", type=str, required=True, default= "models\unique_chars_dict.json", help="Output JSON file to save unique characters dictionary. Default: unique_chars_dict.json in the models directory.")
+    args = parser.parse_args()
+
+    ensure_directory_exists(args.input_dir)
+
+    file_paths = [os.path.join(args.input_dir, file) for file in os.listdir(args.input_dir) if os.path.isfile(os.path.join(args.input_dir, file))]
+
+    if not file_paths:
+        print(f"No files found in the directory: {args.input_dir}")
+        return
+
+    unique_chars_dict = create_unique_chars_dict(file_paths)
+
+    output_dir = os.path.dirname(args.output_file)
+    ensure_directory_exists(output_dir)
+
+    save_unique_chars_dict(unique_chars_dict, args.output_file)
+    print(f"Unique characters dictionary saved to: {args.output_file}")
+
+if __name__ == "__main__":
+    main()
