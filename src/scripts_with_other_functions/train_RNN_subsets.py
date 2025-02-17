@@ -23,16 +23,25 @@ def load_or_initialize_epoch_log(subsets, log_file):
 
 
 def train_subsets(subset, models_dir, epochs, batch_size, learning_rate, log_file, data_dir):
+
+
+    file_path = f"{data_dir}/{subset}.txt"
+
     print(f"Training model for subset {subset}...")
+
     subprocess.run([
         "python", "src/train_RNN_generation.py",
-        "--file_path", f"{data_dir}/{subset}.txt",
+        "--file_path", file_path,
         "--output_dir", models_dir,
         "--epochs", str(epochs),
         "--batch_size", str(batch_size),
         "--lr", str(learning_rate),
         "--patience", "5",
+        "--log",
         "--log_path", f"{log_file}",
+        "--filter_percentile", "True",
+
+
     ])
 
     print(f"Model for subset {subset} trained successfully!")
