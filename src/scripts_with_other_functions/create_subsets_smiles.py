@@ -71,7 +71,7 @@ def stratified_sampling(clustered_data, num_subsets, subset_size):
 def save_subsets(subsets, name_input):
     os.makedirs(f"data/smiles/{name_input}_subsets", exist_ok=True)
     for i, subset in enumerate(subsets):
-        filename = f"data/smiles/{name_input}_subsets/{name_input}_subset_{i+1}.txt"
+        filename = f"data/smiles/{name_input}_subsets/{name_input}_subset_{i}.txt"
         with open(filename, "w") as f:
             f.writelines(smi + "\n" for smi in subset)
 
