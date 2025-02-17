@@ -134,4 +134,3 @@ samples/
 test_pty.py
 *.npy
 data_zinc/
-get_paths.py
