@@ -66,11 +66,33 @@ This directory contains RNN-based models with LSTM layers trained to generate mo
 - **Training Details**:
   - Epochs: 25
   - Time per epoch: 45 minutes
-- **Use Case**: Generation of small molecules (less than 100 elements)
+- **Use Case**: Generation of small molecules (<100 elements)
+---
+
+### 7. **Model: `GDBMedChem_subset_{1-10}_v1.pth`**
+
+- **Dataset**: Subsets of GDBMedChem (10 models, each trained on 250k SMILES).
+- **Description**: This set of models were trained on subsets of the GDBMedChem dataset, selected using fingerprinting and K-means clustering to balance the chemical distribution. This approach enables more efficient training and faster molecule generation compared to the model trained on the full dataset.
+- **Training Details**:
+  - Epochs: 30-45
+  - Time per epoch: 2 minutes
+  - Detailed logs available in `models\generator\GDBMedChem_subsets\epoch_log.json`
+- **Use Case**:  Fast generation of small drug-like molecules (<50 elements).
+---
+
+### 8. **Model: `GDB_17_druglike_8_million_v1.pth`**
+
+- **Dataset**: GDB-17 (filtered for drug-like molecules).
+- **Description**: This model was trained on a subset of the GDB-17 database, specifically selecting drug-like molecules. GDB-17 is one of the largest enumerated chemical spaces, containing all possible molecules up to 17 heavy atoms following valency rules. By focusing on the drug-like subset, this model is optimized for generating synthetically accessible compounds with pharmaceutical potential.
+- **Training Details**:
+  - Epochs: 25
+  - Time per epoch: 45 minutes
+  - Detailed logs available in `models\generator\GDBMedChem_subsets\epoch_log.json`
+- **Use Case**:  Generation of small complex molecules (<100 elements).
 
 ---
 
-### 7. **Model: `insects_smiles_v1.pth`**
+### 9. **Model: `insects_smiles_v1.pth`**
 
 - **Dataset**: Insect-specific drug-like molecules from ChEMBL.
 - **Description**: This model was trained on SMILES strings representing molecules that act as insecticides or insect-targeting drugs, sourced from the ChEMBL database. It is specialized for generating molecules with potential insecticidal activity.
