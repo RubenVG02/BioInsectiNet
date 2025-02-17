@@ -5,13 +5,12 @@ import subprocess
 
 import tkinter as tk
 from tkinter import filedialog
-
 def load_or_initialize_epoch_log(subsets, log_file):
     log_path = os.path.join(log_file)
     
     if not os.path.exists(log_path):
         subsets = [subset.replace(".txt", "") for subset in subsets]
-        epoch_log = {subset: 0 for subset in subsets}
+        epoch_log = {subset: (0, False) for subset in subsets}  # 0 for the epochs trained, False for the early stopping flag
         with open(log_path, "w") as f:
             json.dump(epoch_log, f, indent=4)
         
@@ -78,11 +77,11 @@ def main():
 
     for subset in subsets:
         subset = subset.replace(".txt", "")
-        if epoch_log[subset] >= args.epochs:
+        if epoch_log[subset][0] >= args.epochs or epoch_log[subset][1] == True: # If the model has already been trained for the specified number of epochs or if early stopping was triggered (therefore, the model is already trained).
             print(f"Model for subset {subset} already trained for {args.epochs} epochs. Skipping...")
             continue
         print(f"Training model for subset {subset}...")
-        train_subsets(subset, args.models_dir, args.epochs - epoch_log[subset], args.batch_size, args.learning_rate, args.log_file, args.data_dir)
+        train_subsets(subset, args.models_dir, args.epochs - epoch_log[subset][0], args.batch_size, args.learning_rate, args.log_file, args.data_dir)
 
     print("All models trained successfully!")
 
