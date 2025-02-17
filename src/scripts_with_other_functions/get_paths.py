@@ -51,17 +51,19 @@ def ensure_directory_exists(directory):
 
 def main():
     parser = argparse.ArgumentParser(description="Process SMILES files and compute unique characters.")
-    parser.add_argument("--input_dir", type=str, required=True, default="data/smiles", help="Directory containing SMILES files. Each file should contain SMILES strings separated by newlines.")
-    parser.add_argument("--output_file", type=str, required=True, default= "models\unique_chars_dict.json", help="Output JSON file to save unique characters dictionary. Default: unique_chars_dict.json in the models directory.")
+    parser.add_argument("--input_dir", type=str, default="data/smiles", help="Directory containing SMILES files. Each file should contain SMILES strings separated by newlines.")
+    parser.add_argument("--output_file", type=str, default= "models/unique_chars_dict.json", help="Output JSON file to save unique characters dictionary. Default: unique_chars_dict.json in the models directory.")
     args = parser.parse_args()
 
     ensure_directory_exists(args.input_dir)
 
-    file_paths = [os.path.join(args.input_dir, file) for file in os.listdir(args.input_dir) if os.path.isfile(os.path.join(args.input_dir, file))]
-
-    if not file_paths:
-        print(f"No files found in the directory: {args.input_dir}")
-        return
+    file_paths = []
+    for root, _, files in os.walk(args.input_dir):
+        for file in files:
+            file_paths.append(os.path.join(root, file))
+        if not file_paths:
+            print(f"No files found in the directory: {args.input_dir}")
+            return
 
     unique_chars_dict = create_unique_chars_dict(file_paths)
 
