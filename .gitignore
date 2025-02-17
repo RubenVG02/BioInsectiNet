@@ -134,4 +134,4 @@ samples/
 test_pty.py
 *.npy
 data_zinc/
-samples/
+samples
