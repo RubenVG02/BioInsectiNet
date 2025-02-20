@@ -14,6 +14,10 @@ import numpy as np
 import argparse
 import json
 
+# Silence rdkit warnings
+from rdkit import RDLogger
+RDLogger.DisableLog('rdApp.*')
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Train an RNN model to generate SMILES sequences.")
     parser.add_argument("--file_path", type=str, required=True, help="Path to the SMILES dataset.")
