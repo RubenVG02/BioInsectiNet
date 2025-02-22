@@ -10,7 +10,7 @@ dependencies:
       - mega.py # for uploading the results (optional)
       - pandas
       - requests
-      - qrcode 
+      - qrcode # for the QR code (optional)
       - scikit-learn
       - torch
       - pandas
