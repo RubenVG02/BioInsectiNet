@@ -5,7 +5,6 @@ channels:
   - bioconda
 dependencies:
   - python=3.11
-  - rdkit
   - pip
   - pip:
       - mega.py # for uploading the results (optional)
@@ -21,4 +20,7 @@ dependencies:
       - nltk # for the BLEU score
       - sascorer # for the SA score
       - argparse # for the command line arguments
+      - rdkit # for the molecular fingerprints
+      - optuna # for the hyperparameter optimization
+
 
