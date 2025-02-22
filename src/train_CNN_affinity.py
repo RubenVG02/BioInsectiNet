@@ -5,12 +5,11 @@ import torch.optim as optim
 from torch.amp import GradScaler, autocast
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModel
-from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error, explained_variance_score
+from sklearn.metrics import mean_absolute_error, r2_score
 from rdkit import Chem
 from rdkit.Chem import AllChem
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 import warnings
 from scipy.stats import spearmanr
