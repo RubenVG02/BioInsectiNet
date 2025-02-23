@@ -166,9 +166,9 @@ class CombinedModel(nn.Module):
 
 def objective(trial, train_dataset, val_dataset):
     hidden_dim = trial.suggest_int("hidden_dim", 128, 1024)
-    dropout = trial.suggest_float("dropout", 0.05, 0.3)
-    lr = np.float32(trial.suggest_float("lr", 1e-5, 1e-2, log=True)) 
-    weight_decay = np.float32(trial.suggest_float("weight_decay", 1e-6, 1e-1, log=True))
+    dropout = trial.suggest_float("dropout", 0.05, 0.5)
+    lr = np.float32(trial.suggest_float("lr", 1e-5, 1e-3)) 
+    weight_decay = np.float32(trial.suggest_float("weight_decay", 1e-6, 1e-3))
     num_layers = trial.suggest_int("num_layers", 1, 4)  
     batch_size = trial.suggest_categorical("batch_size", [16, 32, 64]) 
 
@@ -199,8 +199,8 @@ class EarlyStopping:
             self.epochs_no_improve = 0
 
 def train_model_with_optuna(trial, model, train_loader, val_loader, epochs=50, scheduler=None):
-    lr = np.float32(trial.suggest_float("lr", 1e-5, 1e-2, log=True))
-    weight_decay = np.float32(trial.suggest_float("weight_decay", 1e-6, 1e-1, log=True))
+    lr = np.float32(trial.suggest_float("lr", 1e-5, 1e-2))
+    weight_decay = np.float32(trial.suggest_float("weight_decay", 1e-6, 1e-2))
     
     optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
@@ -308,5 +308,7 @@ if __name__ == "__main__":
     
     print(f"Best hyperparameters found: {study.best_params}")
     print(f"Best value found: {study.best_value}")
+
+    
 
     
