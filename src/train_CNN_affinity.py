@@ -302,13 +302,13 @@ if __name__ == "__main__":
         print("Launching Optuna dashboard...")
         #stdout=subprocess.DEVNULL to hide the website output logs, which are constantly updating during the optimization.
         subprocess.Popen(f"optuna-dashboard {args.storage}", shell=True, stdout=subprocess.DEVNULL, creationflags=subprocess.CREATE_NEW_CONSOLE) 
-        print("Optuna dashboard successfully launched, to access it, go to 'http://localhost:8080' in your browser")
+        print("Optuna dashboard successfully launched. To access it, go to 'http://localhost:8080' in your browser")
     
     study.optimize(lambda trial: objective(trial, train_dataset, val_dataset), n_trials=args.n_trials)
     
     print(f"Best hyperparameters found: {study.best_params}")
     print(f"Best value found: {study.best_value}")
 
-    
+
 
     
