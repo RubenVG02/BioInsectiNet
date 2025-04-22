@@ -1,92 +1,57 @@
-import pandas as pd
-import tensorflow as tf
+import torch
+from train_cnn_affinity import CustomModel 
+from tqdm import tqdm
 import numpy as np
-from keras.layers import Dense, Conv1D, GlobalMaxPooling1D, Embedding, PReLU, Dropout, concatenate, BatchNormalization
-from keras.regularizers import l2
 
-def calculate_affinity(smile, fasta, path_model):
-    """
-    Calculates the affinity score for a given SMILES and FASTA sequence using a trained model.
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    Parameters:
-        smile (str): SMILES string representing the molecule.
-        fasta (str): FASTA sequence representing the target protein.
-        path_model (path): Path to the trained model file (.h5).
+elements_smiles = np.load("models/elements_smiles.npy")
+elements_fasta = np.load("models/elements_fasta.npy")
 
-    Returns:
-        float: The affinity score predicted by the model.
-    """
+int_smiles = {char: idx + 1 for idx, char in enumerate(elements_smiles)}
+int_fasta = {char: idx + 1 for idx, char in enumerate(elements_fasta)}
 
-    # Maximum value that I want my SMILES to have, they will be used to train the model
-    max_smiles = 100
-    max_fasta = 5000
+def convert_sequences(smiles_list, fasta_list, max_smiles=150, max_fasta=5000):
+    smiles_w_numbers = []
+    fasta_w_numbers = []
 
-    # Define elements for SMILES and FASTA encoding
-    elements_smiles = ['6', '3', '=', 'H', 'C', 'O', 'c', '#', 'a', '[', 't', 'r', 'K', 'n', 'B', 'F', '4', '+', ']', '-', '1', 'P',
-                       '0', 'L', 'g', '9', 'Z', '(', 'N', '8', 'I', '7', '5', 'l', ')', 'A', 'e', 'o', 'V', 's', 'S', '2', 'M', 'T', 'u', 'i', "p"]
-    elements_fasta = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
-                      'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+    print("Processing SMILES...")
+    for smile in tqdm(smiles_list, desc="SMILES", unit="seq"):
+        smile_numbers = [int_smiles.get(char, 0) for char in smile][:max_smiles]
+        smile_numbers.extend([0] * (max_smiles - len(smile_numbers)))
+        smiles_w_numbers.append(smile_numbers)
 
-    int_smiles = dict(zip(elements_smiles, range(1, len(elements_smiles)+1)))
-    int_fasta = dict(zip(elements_fasta, range(1, len(elements_fasta)+1)))
+    print("Processing FASTA...")
+    for fasta in tqdm(fasta_list, desc="FASTA", unit="seq"):
+        fasta_numbers = [int_fasta.get(char, 0) for char in fasta][:max_fasta]
+        fasta_numbers.extend([0] * (max_fasta - len(fasta_numbers))) 
+        fasta_w_numbers.append(fasta_numbers)
 
-    # Kernel regularizer, not necessary but it can help to avoid overfitting
-    regulator = l2(0.001)
+    return np.array(smiles_w_numbers), np.array(fasta_w_numbers)
 
-    smiles_input = tf.keras.Input(shape=(max_smiles,), dtype='int32', name='smiles_input')
-    embed_smiles = Embedding(input_dim=len(elements_smiles)+1, input_length=max_smiles, output_dim=128)(smiles_input)
-    x = Conv1D(filters=32, kernel_size=3, padding="SAME", kernel_regularizer=regulator)(embed_smiles)
-    x = PReLU()(x)
 
-    x = Conv1D(filters=64, kernel_size=3, padding="SAME")(x)
-    x = BatchNormalization()(x)
-    x = PReLU()(x)
-    x = Conv1D(filters=128, kernel_size=3, padding="SAME")(x)
-    x = BatchNormalization()(x)
-    x = PReLU()(x)
-    pool_smiles = GlobalMaxPooling1D()(x)
+def predict_affinity(smile, fasta, path_model):
+    model = CustomModel(150, 5000, len(elements_smiles), len(elements_fasta))
+    model.load_state_dict(torch.load(path_model))
+    model.eval()
+    model.to(device)
 
-    fasta_input = tf.keras.Input(shape=(max_fasta,), name='fasta_input')
-    embed_fasta = Embedding(input_dim=len(elements_fasta)+1, input_length=max_fasta, output_dim=256)(fasta_input)
-    x2 = Conv1D(filters=32, kernel_size=3, padding="SAME")(embed_fasta)
-    x2 = PReLU()(x2)
+  
+    smile_tensor, fasta_tensor = convert_sequences([smile], [fasta]) 
+    smile_tensor = torch.tensor(smile_tensor).to(device)
+    fasta_tensor = torch.tensor(fasta_tensor).to(device)
 
-    x2 = Conv1D(filters=64, kernel_size=3, padding="SAME")(x2)
-    x2 = BatchNormalization()(x2)
-    x2 = PReLU()(x2)
-    x2 = Conv1D(filters=128, kernel_size=3, padding="SAME")(x2)
-    x2 = BatchNormalization()(x2)
-    x2 = PReLU()(x2)
-    pool_fasta = GlobalMaxPooling1D()(x2)
+    with torch.no_grad():
+        affinity = model(smile_tensor, fasta_tensor).item()
 
-    combined = concatenate([pool_smiles, pool_fasta])
+    return affinity
 
-    dense = Dense(units=1024, activation="relu")(combined)
-    dense = Dropout(0.3)(dense)
-    dense = Dense(units=1024, activation="relu")(dense)
-    dense = Dropout(0.3)(dense)
-    dense = Dense(units=512, activation="relu")(dense)
 
-    output = Dense(1, activation="relu", name="output")(dense)
+smile = "Nc1ccccc1NC(=O)c1ccc(C=C2CN(Cc3cccnc3)C2)c(Cl)c1"
+fasta = "MAQTQGTRRKVCYYYDGDVGNYYYGQGHPMKPHRIRMTHNLLLNYGLYRKMEIYRPHKANAEEMTKYHSDDYIKFLRSIRPDNMSEYSKQMQRFNVGEDCPVFDGLFEFCQLSTGGSVASAVKLNKQQTDIAVNWAGGLHHAKKSEASGFCYVNDIVLAILELLKYHQRVLYIDIDIHHGDGVEEAFYTTDRVMTVSFHKYGEYFPGTGDLRDIGAGKGKYYAVNYPLRDGIDDESYEAIFKPVMSKVMEMFQPSAVVLQCGSDSLSGDRLGCFNLTIKGHAKCVEFVKSFNLPMLMLGGGGYTIRNVARCWTYETAVALDTEIPNELPYNDYFEYFGPDFKLHISPSNMTNQNTNEYLEKIKQRLFENLRMLPHAPGVQMQAIPEDAIPEESGDEDEDDPDKRISICSSDKRIACEEEFSDSEEEGEGGRKNSSNFKKAKRVKTEDEKEKDPEEKKEVTEEEKTKEEKPEAKGVKEEVKLA"
+path_model = r"models\checkpoints\best_model_20250206-132136.pth"
 
-    model = tf.keras.models.Model(inputs=[smiles_input, fasta_input], outputs=[output])
-
-    # Load the trained model weights
-    model.load_weights(path_model)
-
-    # Prepare the input data
-    smiles_in = [int_smiles.get(element, 0) for element in smile]
-    smiles_in = smiles_in + [0] * (max_smiles - len(smiles_in))
-    
-    fasta_in = [int_fasta.get(amino, 0) for amino in fasta]
-    fasta_in = fasta_in + [0] * (max_fasta - len(fasta_in))
-
-    # Predict the affinity
-    predict = model.predict({
-        'smiles_input': np.array(smiles_in).reshape(1, max_smiles),
-        'fasta_input': np.array(fasta_in).reshape(1, max_fasta)
-    })[0][0]
-
-    print(f"Predicted affinity: {predict}")
-
-    return predict
+affinity = predict_affinity(smile, fasta, path_model)
+affinity = np.power(10, affinity) # As we performed a log transformation in the training, we need to revert it
+affinity = round(affinity, 2)
+print(f"Predicted affinity: {affinity}")
