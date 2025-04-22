@@ -278,6 +278,7 @@ if __name__ == "__main__":
     model_chem = AutoModel.from_pretrained("seyonec/ChemBERTa-zinc-base-v1").to(device)
     
     
+    
     df = load_preprocessed_data(args.preprocessed_data_path)
     if df is None:
         df = preprocess_data(args.raw_data_path, tokenizer_bert, model_bert, tokenizer_chem, model_chem, save_path=args.preprocessed_data_path)
