@@ -1,14 +1,14 @@
 import pandas as pd
 
 def extract_smiles_from_csv(input_csv, output_txt, separator=";"):
-    ''' 
+    """ 
     Extract SMILES from a CSV file and save them to a text file.
 
     Parameters:
         input_csv (str): Name of the input CSV file (without extension).
         output_txt (str): Name of the output text file (without extension).
         separator (str): Separator used in the CSV file.
-    '''
+    """
     df = pd.read_csv(f"{input_csv}", sep=separator, low_memory=False, on_bad_lines="skip")
     print(df.columns.names)
     unique_smiles = df["Smiles"].unique()
@@ -18,7 +18,7 @@ def extract_smiles_from_csv(input_csv, output_txt, separator=";"):
                 file.write(f"{smile}\n")
 
 def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="IC50 (nM)", col_seq="BindingDB Target Chain Sequence"):
-    '''
+    """
     Clean affinity data and save it to a CSV file.
 
     Parameters:
@@ -30,7 +30,8 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
     
     Returns:
         str: Name of the output CSV file.
-    '''
+    """
+    
     print(f"Loading data from {input_tsv}...")
 
     if not input_tsv.endswith(".tsv"):
@@ -52,7 +53,8 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
 
     df["IC50"] = pd.to_numeric(df["IC50"].str.replace(r"[<>]", "", regex=True), errors='coerce')
 
-    df.query("0 < IC50 < 1000000 and Smiles.str.len() < 150 and Sequences.str.len() < 5000", inplace=True)
+    # We use a max length of 2048 on the FASTA seqs to ensure the embedding has a fixed size that matches the input requirements of the affinity model.
+    df.query("0 < IC50 < 1000000 and Smiles.str.len() < 150 and Sequences.str.len() < 2048", inplace=True)
 
     df["Sequences"] = df["Sequences"].str.upper()
 
@@ -66,4 +68,5 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
     print("Cleaning process completed!")
     return f"{output_csv}"
 
-extract_smiles_from_csv("insect.csv", "data/Smiles/insects_all_lengths.txt")
+
+clean_CNN_data("data/BindingDB_all.tsv", "data/BindingDB_cleaned_2048")
