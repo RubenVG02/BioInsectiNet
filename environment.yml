@@ -22,5 +22,6 @@ dependencies:
       - argparse # for the command line arguments
       - rdkit # for the molecular fingerprints
       - optuna # for the hyperparameter optimization
+      - fair-esm # for the tokenizer 
 
 
