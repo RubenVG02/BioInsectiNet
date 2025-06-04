@@ -31,7 +31,7 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
     Returns:
         str: Name of the output CSV file.
     """
-    
+
     print(f"Loading data from {input_tsv}...")
 
     if not input_tsv.endswith(".tsv"):
@@ -53,8 +53,8 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
 
     df["IC50"] = pd.to_numeric(df["IC50"].str.replace(r"[<>]", "", regex=True), errors='coerce')
 
-    # We use a max length of 2048 on the FASTA seqs to ensure the embedding has a fixed size that matches the input requirements of the affinity model.
-    df.query("0 < IC50 < 1000000 and Smiles.str.len() < 150 and Sequences.str.len() < 2048", inplace=True)
+    # We use a max length of 1024 on the FASTA seqs to ensure the embedding has a fixed size that matches the input requirements of the affinity model.
+    df.query("0 < IC50 < 1000000 and Smiles.str.len() < 150 and Sequences.str.len() < 1024", inplace=True)
 
     df["Sequences"] = df["Sequences"].str.upper()
 
@@ -69,4 +69,4 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
     return f"{output_csv}"
 
 
-clean_CNN_data("data/BindingDB_all.tsv", "data/BindingDB_cleaned_2048")
+clean_CNN_data("data/BindingDB_all.tsv", "data/BindingDB_cleaned_1024")
