@@ -1,0 +1,16 @@
+[
+    {
+        "trial_number": 0,
+        "hidden_dim": 720,
+        "dropout": 0.12345584419457627,
+        "lr": 4.1757719304751504e-05,
+        "weight_decay": 2.634286597875994e-05,
+        "num_layers": 3,
+        "batch_size": 64,
+        "n_attention_heads": 4,
+        "scheduler_patience": 3.0,
+        "scheduler_factor": 0.6,
+        "early_stopping_patience": 7,
+        "early_stopping_delta": 0.0005486592149272014
+    }
+]
