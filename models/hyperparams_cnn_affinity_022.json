@@ -1,0 +1,529 @@
+{
+    "0": {
+        "params": {
+            "hidden_dim": 898,
+            "dropout": 0.12505086625544054,
+            "lr": 0.00015776101580566753,
+            "weight_decay": 7.306942501178218e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 12,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.6,
+            "early_stopping_patience": 15,
+            "early_stopping_delta": 0.00046392527092367164
+        },
+        "value": 0.22183207663690438,
+        "state": 1
+    },
+    "1": {
+        "params": {
+            "hidden_dim": 671,
+            "dropout": 0.11126759227107792,
+            "lr": 0.0003319768797013148,
+            "weight_decay": 8.38435556223834e-05,
+            "num_layers": 3,
+            "batch_size": 32,
+            "n_attention_heads": 4,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 10,
+            "early_stopping_delta": 0.0030835251895192707
+        },
+        "value": null,
+        "state": 3
+    },
+    "2": {
+        "params": {
+            "hidden_dim": 548,
+            "dropout": 0.15379993558463395,
+            "lr": 6.514671536072991e-05,
+            "weight_decay": 3.3506214609287746e-05,
+            "num_layers": 3,
+            "batch_size": 64,
+            "n_attention_heads": 12,
+            "scheduler_patience": 7,
+            "scheduler_factor": 0.3,
+            "early_stopping_patience": 6,
+            "early_stopping_delta": 0.0002902785099205764
+        },
+        "value": 0.2127982232037615,
+        "state": 1
+    },
+    "3": {
+        "params": {
+            "hidden_dim": 823,
+            "dropout": 0.11395228253327641,
+            "lr": 7.402327791098174e-05,
+            "weight_decay": 1.8312394229771227e-05,
+            "num_layers": 2,
+            "batch_size": 32,
+            "n_attention_heads": 4,
+            "scheduler_patience": 5,
+            "scheduler_factor": 0.3,
+            "early_stopping_patience": 10,
+            "early_stopping_delta": 0.004543843419139282
+        },
+        "value": 0.21045449445384848,
+        "state": 1
+    },
+    "4": {
+        "params": {
+            "hidden_dim": 951,
+            "dropout": 0.1122673268979563,
+            "lr": 0.0002099419661812589,
+            "weight_decay": 2.9574364799764447e-05,
+            "num_layers": 2,
+            "batch_size": 64,
+            "n_attention_heads": 4,
+            "scheduler_patience": 4,
+            "scheduler_factor": 0.3,
+            "early_stopping_patience": 5,
+            "early_stopping_delta": 0.002215178804821229
+        },
+        "value": 0.22724873224583914,
+        "state": 1
+    },
+    "5": {
+        "params": {
+            "hidden_dim": 678,
+            "dropout": 0.16762037510333128,
+            "lr": 3.511299217064437e-05,
+            "weight_decay": 6.69680912669626e-05,
+            "num_layers": 4,
+            "batch_size": 32,
+            "n_attention_heads": 6,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 6,
+            "early_stopping_delta": 0.002869077695744117
+        },
+        "value": null,
+        "state": 3
+    },
+    "6": {
+        "params": {
+            "hidden_dim": 976,
+            "dropout": 0.06553595631393756,
+            "lr": 0.00016325682222490724,
+            "weight_decay": 4.544947950280615e-05,
+            "num_layers": 3,
+            "batch_size": 32,
+            "n_attention_heads": 12,
+            "scheduler_patience": 5,
+            "scheduler_factor": 0.3,
+            "early_stopping_patience": 15,
+            "early_stopping_delta": 0.0024960942944633776
+        },
+        "value": 0.22735225368275028,
+        "state": 1
+    },
+    "7": {
+        "params": {
+            "hidden_dim": 757,
+            "dropout": 0.1409600495977515,
+            "lr": 1.8296485971189535e-05,
+            "weight_decay": 4.2681277999014996e-05,
+            "num_layers": 3,
+            "batch_size": 64,
+            "n_attention_heads": 10,
+            "scheduler_patience": 7,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 6,
+            "early_stopping_delta": 0.003074537768212708
+        },
+        "value": 0.20988176585117366,
+        "state": 1
+    },
+    "8": {
+        "params": {
+            "hidden_dim": 581,
+            "dropout": 0.10099814213920327,
+            "lr": 1.479521239969292e-05,
+            "weight_decay": 3.095707049238114e-05,
+            "num_layers": 2,
+            "batch_size": 128,
+            "n_attention_heads": 6,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 14,
+            "early_stopping_delta": 0.0004842250067858095
+        },
+        "value": null,
+        "state": 3
+    },
+    "9": {
+        "params": {
+            "hidden_dim": 705,
+            "dropout": 0.19922092518327295,
+            "lr": 6.2414234900512e-05,
+            "weight_decay": 9.536389062548886e-05,
+            "num_layers": 3,
+            "batch_size": 64,
+            "n_attention_heads": 6,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 8,
+            "early_stopping_delta": 0.00021598482934303564
+        },
+        "value": null,
+        "state": 3
+    },
+    "10": {
+        "params": {
+            "hidden_dim": 630,
+            "dropout": 0.06698826100125557,
+            "lr": 3.366974763331339e-05,
+            "weight_decay": 2.579171764904343e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 8,
+            "scheduler_patience": 7,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 10,
+            "early_stopping_delta": 0.002885594119310639
+        },
+        "value": 0.2079326534334223,
+        "state": 1
+    },
+    "11": {
+        "params": {
+            "hidden_dim": 1007,
+            "dropout": 0.1921784489777968,
+            "lr": 3.287991936352499e-05,
+            "weight_decay": 4.0511048601418346e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 4,
+            "scheduler_patience": 4,
+            "scheduler_factor": 0.3,
+            "early_stopping_patience": 9,
+            "early_stopping_delta": 0.00037871129056344125
+        },
+        "value": 0.20364942016593546,
+        "state": 1
+    },
+    "12": {
+        "params": {
+            "hidden_dim": 588,
+            "dropout": 0.12239879742476908,
+            "lr": 0.0004780126575883291,
+            "weight_decay": 8.09326487617309e-05,
+            "num_layers": 2,
+            "batch_size": 128,
+            "n_attention_heads": 10,
+            "scheduler_patience": 7,
+            "scheduler_factor": 0.6,
+            "early_stopping_patience": 12,
+            "early_stopping_delta": 0.0001528853545817533
+        },
+        "value": 0.2331374706584141,
+        "state": 1
+    },
+    "13": {
+        "params": {
+            "hidden_dim": 963,
+            "dropout": 0.07251636100773945,
+            "lr": 0.0001226477435678864,
+            "weight_decay": 1.615900241136844e-05,
+            "num_layers": 3,
+            "batch_size": 32,
+            "n_attention_heads": 12,
+            "scheduler_patience": 4,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 13,
+            "early_stopping_delta": 0.00011108231196125305
+        },
+        "value": 0.22411449940258468,
+        "state": 1
+    },
+    "14": {
+        "params": {
+            "hidden_dim": 705,
+            "dropout": 0.1996144320245449,
+            "lr": 1.1116844727497266e-05,
+            "weight_decay": 6.453468938870572e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 6,
+            "scheduler_patience": 3,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 8,
+            "early_stopping_delta": 0.0011097955338494787
+        },
+        "value": 0.2301907652593598,
+        "state": 1
+    },
+    "15": {
+        "params": {
+            "hidden_dim": 683,
+            "dropout": 0.19477489375798293,
+            "lr": 3.092577609515931e-05,
+            "weight_decay": 2.0870792893921894e-06,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 6,
+            "scheduler_patience": 3,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 10,
+            "early_stopping_delta": 0.0009171416324215944
+        },
+        "value": 0.21609789128777618,
+        "state": 1
+    },
+    "16": {
+        "params": {
+            "hidden_dim": 620,
+            "dropout": 0.0844141175582849,
+            "lr": 3.626401325405998e-05,
+            "weight_decay": 9.693354683114314e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 8,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 8,
+            "early_stopping_delta": 0.00041486551531744176
+        },
+        "value": 0.20480957990879056,
+        "state": 1
+    },
+    "17": {
+        "params": {
+            "hidden_dim": 843,
+            "dropout": 0.09154640790213721,
+            "lr": 3.370836657393313e-05,
+            "weight_decay": 9.64495330849369e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 6,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 8,
+            "early_stopping_delta": 0.0003246887344200879
+        },
+        "value": 0.20271530642919422,
+        "state": 1
+    },
+    "18": {
+        "params": {
+            "hidden_dim": 854,
+            "dropout": 0.1711344923278051,
+            "lr": 1.935031722833215e-05,
+            "weight_decay": 9.973518065304753e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 6,
+            "scheduler_patience": 4,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 8,
+            "early_stopping_delta": 0.00020830505456878777
+        },
+        "value": 0.20851247699700445,
+        "state": 1
+    },
+    "19": {
+        "params": {
+            "hidden_dim": 1005,
+            "dropout": 0.09620011711940354,
+            "lr": 5.213152357913717e-05,
+            "weight_decay": 5.8422472335884575e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 4,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.3,
+            "early_stopping_patience": 12,
+            "early_stopping_delta": 0.0005666903777180843
+        },
+        "value": 0.19775557261779833,
+        "state": 1
+    },
+    "20": {
+        "params": {
+            "hidden_dim": 909,
+            "dropout": 0.09282161170174237,
+            "lr": 6.388679761726749e-05,
+            "weight_decay": 6.009797380257e-05,
+            "num_layers": 3,
+            "batch_size": 128,
+            "n_attention_heads": 6,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 12,
+            "early_stopping_delta": 0.000653804869166035
+        },
+        "value": 0.20455115204757504,
+        "state": 1
+    },
+    "21": {
+        "params": {
+            "hidden_dim": 797,
+            "dropout": 0.09577163090929743,
+            "lr": 9.419685646003751e-05,
+            "weight_decay": 8.531965888732594e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 4,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.3,
+            "early_stopping_patience": 13,
+            "early_stopping_delta": 0.0013635631361026172
+        },
+        "value": 0.208122526970938,
+        "state": 1
+    },
+    "22": {
+        "params": {
+            "hidden_dim": 879,
+            "dropout": 0.051655316967573445,
+            "lr": 1.8893064476857545e-05,
+            "weight_decay": 5.5892317116625134e-05,
+            "num_layers": 3,
+            "batch_size": 32,
+            "n_attention_heads": 6,
+            "scheduler_patience": 5,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 11,
+            "early_stopping_delta": 0.0006624137689485143
+        },
+        "value": null,
+        "state": 3
+    },
+    "23": {
+        "params": {
+            "hidden_dim": 881,
+            "dropout": 0.05486911396905484,
+            "lr": 4.462030604963804e-05,
+            "weight_decay": 5.3643943659734685e-05,
+            "num_layers": 3,
+            "batch_size": 32,
+            "n_attention_heads": 6,
+            "scheduler_patience": 5,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 11,
+            "early_stopping_delta": 0.0006403663259836692
+        },
+        "value": 0.20673311310016954,
+        "state": 1
+    },
+    "24": {
+        "params": {
+            "hidden_dim": 1023,
+            "dropout": 0.10245058929958176,
+            "lr": 2.2897669488204418e-05,
+            "weight_decay": 8.531138713452135e-05,
+            "num_layers": 4,
+            "batch_size": 64,
+            "n_attention_heads": 8,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 7,
+            "early_stopping_delta": 0.00023732127350916562
+        },
+        "value": 0.20125370541769172,
+        "state": 1
+    },
+    "25": {
+        "params": {
+            "hidden_dim": 1022,
+            "dropout": 0.10553103762177224,
+            "lr": 1.9960311930451777e-05,
+            "weight_decay": 7.078047574363838e-05,
+            "num_layers": 3,
+            "batch_size": 64,
+            "n_attention_heads": 10,
+            "scheduler_patience": 5,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 6,
+            "early_stopping_delta": 0.00021008756464924205
+        },
+        "value": 0.2052739069137878,
+        "state": 1
+    },
+    "26": {
+        "params": {
+            "hidden_dim": 958,
+            "dropout": 0.08174462067347216,
+            "lr": 1.0486064388325481e-05,
+            "weight_decay": 8.985253053927073e-05,
+            "num_layers": 4,
+            "batch_size": 64,
+            "n_attention_heads": 8,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 7,
+            "early_stopping_delta": 0.00027583327626721425
+        },
+        "value": 0.2053431113720914,
+        "state": 1
+    },
+    "27": {
+        "params": {
+            "hidden_dim": 1021,
+            "dropout": 0.09838515088384893,
+            "lr": 4.644575396866687e-05,
+            "weight_decay": 7.881372432048391e-05,
+            "num_layers": 4,
+            "batch_size": 64,
+            "n_attention_heads": 6,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.6,
+            "early_stopping_patience": 9,
+            "early_stopping_delta": 0.0005422640474346583
+        },
+        "value": 0.20491561983165577,
+        "state": 1
+    },
+    "28": {
+        "params": {
+            "hidden_dim": 923,
+            "dropout": 0.13725169218133682,
+            "lr": 2.4842525526104107e-05,
+            "weight_decay": 9.130718632776451e-05,
+            "num_layers": 4,
+            "batch_size": 64,
+            "n_attention_heads": 8,
+            "scheduler_patience": 6,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 7,
+            "early_stopping_delta": 0.0003066838047740379
+        },
+        "value": 0.20365789826603134,
+        "state": 1
+    },
+    "29": {
+        "params": {
+            "hidden_dim": 754,
+            "dropout": 0.08081532384176562,
+            "lr": 1.4477571625920071e-05,
+            "weight_decay": 7.028825906351706e-05,
+            "num_layers": 4,
+            "batch_size": 128,
+            "n_attention_heads": 4,
+            "scheduler_patience": 5,
+            "scheduler_factor": 0.4,
+            "early_stopping_patience": 9,
+            "early_stopping_delta": 0.0001909818798869813
+        },
+        "value": 0.20073496379265982,
+        "state": 1
+    },
+    "30": {
+        "params": {
+            "hidden_dim": 741,
+            "dropout": 0.07598014037424466,
+            "lr": 1.3629056450269917e-05,
+            "weight_decay": 5.60860999810033e-05,
+            "num_layers": 4,
+            "batch_size": 64,
+            "n_attention_heads": 4,
+            "scheduler_patience": 5,
+            "scheduler_factor": 0.5,
+            "early_stopping_patience": 11,
+            "early_stopping_delta": 0.00010823743568832343
+        },
+        "value": null,
+        "state": 0
+    }
+}
