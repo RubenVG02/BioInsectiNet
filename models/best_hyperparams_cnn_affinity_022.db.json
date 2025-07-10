@@ -1,0 +1,17 @@
+{
+    "params": {
+        "hidden_dim": 1005,
+        "dropout": 0.09620011711940354,
+        "lr": 5.213152357913717e-05,
+        "weight_decay": 5.8422472335884575e-05,
+        "num_layers": 4,
+        "batch_size": 128,
+        "n_attention_heads": 4,
+        "scheduler_patience": 6,
+        "scheduler_factor": 0.3,
+        "early_stopping_patience": 12,
+        "early_stopping_delta": 0.0005666903777180843
+    },
+    "value": 0.19775557261779833,
+    "state": 1
+}
