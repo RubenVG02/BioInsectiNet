@@ -402,16 +402,17 @@ def train_model_with_optuna(trial, model, train_loader, val_loader, lr, weight_d
 
     if os.path.exists(f"{output_path}/all_trials.json"):
         if os.path.getsize(f"{output_path}/all_trials.json") > 0:
-            with open(f"{output_path}/all_trials.json", "w") as f:
+            with open(f"{output_path}/all_trials.json", "r") as f:
                 all_trials = json.load(f)
          
     all_trials.append(params)
     with open(f"{output_path}/all_trials.json", "w") as f:
         json.dump(all_trials, f, indent=4)
 
-    with open(os.path.join(f"{output_path}", f"trial_{trial.number}_loss_{best_val_loss:.4f}.pth"), "wb") as f:
-        trial.set_user_attr("model_state_dict", model.state_dict())
+    model_path = os.path.join(output_path, f"trial_{trial.number}_loss_{best_val_loss:.4f}.pth")
+    with open(model_path, "wb") as f:
         torch.save(model.state_dict(), f)
+    trial.set_user_attr("model_path", model_path)
     
 
 
@@ -476,22 +477,16 @@ if __name__ == "__main__":
     
     study.optimize(lambda trial: objective(trial, train_dataset, val_dataset), n_trials=args.n_trials)
 
- 
-    
-    for trial in study.trials:
-        if trial == study.best_trial:
-            if best_checkpoint_path and os.path.exists(best_checkpoint_path):
-                os.remove(best_checkpoint_path)
-            print(f"Best trial found: {trial.number} with value: {trial.value}")
-            best_checkpoint_path = os.path.join(output_path, f"{output_path}/trial_{trial.number}_loss_{trial.value:.4f}.pth")
-            torch.save(trial.user_attrs['model_state_dict'], best_checkpoint_path)
-        with open(os.path.join(output_path, "params_models.txt"), "a") as f:
-            f.write(f"Trial {trial.number}:\n")
-            for key, value in trial.params.items():
-                f.write(f"{key}: {value}\n")
-            f.write(f"Loss: {trial.value:.4f}\n")
-            f.write(f"{'='*50}\n\n")
     print(f"Study completed with {len(study.trials)} trials. Best value: {study.best_value}")
+
+    for file in os.listdir(output_path):
+        if file.endswith(".pth"):
+            if study.best_value != float(file.split("_")[-1].split(".")[0]):
+                os.remove(os.path.join(output_path, file))
+            else:
+                print(f"Best model saved in {os.path.join(output_path, file)} with value {study.best_value}")
+
+                
 
 
 
