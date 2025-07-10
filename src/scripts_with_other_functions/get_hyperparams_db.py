@@ -1,18 +1,22 @@
 import optuna
+import json
 
-
-def get_all_trials(db_path):
+def get_all_trials(db_path, study_name=None):
     """
     Extracts hyperparameters from a database file.
 
     Args:
         db_path (str): Path to the database file.
+        study_name (str): Name of the Optuna study to load. If not specified, the name is the base name of the database file.
     Returns:
         dict: A dictionary containing hyperparameters.
 
     """
 
-    study = optuna.load_study(study_name="study", storage=f"sqlite:///{db_path}")
+    if not study_name:
+        study_name = db_path.split("/")[-1].split(".")[0]
+        print(f"Using study name: {study_name}")
+    study = optuna.load_study(study_name= study_name, storage=f"sqlite:///{db_path}")
     trials = study.trials
     hyperparams = {}
     for trial in trials:
@@ -21,15 +25,13 @@ def get_all_trials(db_path):
             "value": trial.value,
             "state": trial.state,
         }
-
-    with open(f"models/hyperparams_{db_path.split('/')[-1]}.json", "w") as f:
-        import json
+    with open(f"models/hyperparams_{db_path.split('/')[-1].split('.')[0]}.json", "w") as f:
         json.dump(hyperparams, f, indent=4)
 
-    print(f"Hyperparameters saved to models/hyperparams_{db_path.split('/')[-1]}.json with {len(hyperparams)} trials.")
+    print(f"Hyperparameters saved to models/hyperparams_{db_path.split('/')[-1].split('.')[0]}.json with {len(hyperparams)} trials.")
 
 
-def get_best_trial(db_path):
+def get_best_trial(db_path, study_name=None):
     """
     Extracts the best trial from a database file.
 
@@ -40,7 +42,10 @@ def get_best_trial(db_path):
 
     """
 
-    study = optuna.load_study(study_name="study", storage=f"sqlite:///{db_path}")
+    if not study_name:
+        study_name = db_path.split("/")[-1].split(".")[0]
+        print(f"Using study name: {study_name}")
+    study = optuna.load_study(study_name=study_name, storage=f"sqlite:///{db_path}")
     best_trial = study.best_trial
     best_hyperparams = {
         "params": best_trial.params,
@@ -56,3 +61,4 @@ def get_best_trial(db_path):
     return best_hyperparams
 
 
+#get_all_trials("models/cnn_affinity_022.db", study_name="cnn_affinity")
