@@ -1,57 +1,62 @@
 import torch
-from train_cnn_affinity import CustomModel 
-from tqdm import tqdm
+from train_affinity_predictor import CombinedModel
 import numpy as np
+from transformers import AutoTokenizer, AutoModel
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+from scripts_with_other_functions.get_hyperparams_db import get_best_trial
 
-elements_smiles = np.load("models/elements_smiles.npy")
-elements_fasta = np.load("models/elements_fasta.npy")
-
-int_smiles = {char: idx + 1 for idx, char in enumerate(elements_smiles)}
-int_fasta = {char: idx + 1 for idx, char in enumerate(elements_fasta)}
-
-def convert_sequences(smiles_list, fasta_list, max_smiles=150, max_fasta=5000):
-    smiles_w_numbers = []
-    fasta_w_numbers = []
-
-    print("Processing SMILES...")
-    for smile in tqdm(smiles_list, desc="SMILES", unit="seq"):
-        smile_numbers = [int_smiles.get(char, 0) for char in smile][:max_smiles]
-        smile_numbers.extend([0] * (max_smiles - len(smile_numbers)))
-        smiles_w_numbers.append(smile_numbers)
-
-    print("Processing FASTA...")
-    for fasta in tqdm(fasta_list, desc="FASTA", unit="seq"):
-        fasta_numbers = [int_fasta.get(char, 0) for char in fasta][:max_fasta]
-        fasta_numbers.extend([0] * (max_fasta - len(fasta_numbers))) 
-        fasta_w_numbers.append(fasta_numbers)
-
-    return np.array(smiles_w_numbers), np.array(fasta_w_numbers)
-
-
-def predict_affinity(smile, fasta, path_model):
-    model = CustomModel(150, 5000, len(elements_smiles), len(elements_fasta))
+def predict_affinity(smile, fasta, path_model, best_trial):
+    model = CombinedModel(hidden_dim=best_trial["params"]["hidden_dim"],
+                          num_layers=best_trial["params"]["num_layers"],
+                          dropout=best_trial["params"]["dropout"],
+                          n_attention_heads=best_trial["params"]["n_attention_heads"])
     model.load_state_dict(torch.load(path_model))
-    model.eval()
     model.to(device)
+    model.eval()
 
-  
-    smile_tensor, fasta_tensor = convert_sequences([smile], [fasta]) 
-    smile_tensor = torch.tensor(smile_tensor).to(device)
-    fasta_tensor = torch.tensor(fasta_tensor).to(device)
+    smiles_inputs = tokenizer_smiles(smile, return_tensors="pt", truncation=True, padding=True, max_length=150).to(device)
+    with torch.no_grad():
+        smiles_outputs = model_smiles(**smiles_inputs)
+    attention_mask_smiles = smiles_inputs['attention_mask'].unsqueeze(-1).expand(smiles_outputs.last_hidden_state.size()).float()
+    chem_emb = (smiles_outputs.last_hidden_state * attention_mask_smiles).sum(1) / attention_mask_smiles.sum(1).clamp(min=1e-9)
+    chem_emb = chem_emb.float()
+
+    fasta_inputs = tokenizer_fasta(fasta, return_tensors="pt", truncation=True, padding=True, max_length=1024).to(device)
+    with torch.no_grad():
+        fasta_outputs = model_fasta(**fasta_inputs)
+    attention_mask_fasta = fasta_inputs['attention_mask'].unsqueeze(-1).expand(fasta_outputs.last_hidden_state.size()).float()
+    fasta_emb = (fasta_outputs.last_hidden_state * attention_mask_fasta).sum(1) / attention_mask_fasta.sum(1).clamp(min=1e-9)
+    fasta_emb = fasta_emb.float()
+
+    print("chem_emb shape:", chem_emb.shape)
+    print("fasta_emb shape:", fasta_emb.shape)
 
     with torch.no_grad():
-        affinity = model(smile_tensor, fasta_tensor).item()
+        output_tensor = model(chem_emb, fasta_emb)
+        print("Raw model output:", output_tensor)
+        affinity = output_tensor.squeeze().item()
+    
 
     return affinity
 
+if __name__ == "__main__":
 
-smile = "Nc1ccccc1NC(=O)c1ccc(C=C2CN(Cc3cccnc3)C2)c(Cl)c1"
-fasta = "MAQTQGTRRKVCYYYDGDVGNYYYGQGHPMKPHRIRMTHNLLLNYGLYRKMEIYRPHKANAEEMTKYHSDDYIKFLRSIRPDNMSEYSKQMQRFNVGEDCPVFDGLFEFCQLSTGGSVASAVKLNKQQTDIAVNWAGGLHHAKKSEASGFCYVNDIVLAILELLKYHQRVLYIDIDIHHGDGVEEAFYTTDRVMTVSFHKYGEYFPGTGDLRDIGAGKGKYYAVNYPLRDGIDDESYEAIFKPVMSKVMEMFQPSAVVLQCGSDSLSGDRLGCFNLTIKGHAKCVEFVKSFNLPMLMLGGGGYTIRNVARCWTYETAVALDTEIPNELPYNDYFEYFGPDFKLHISPSNMTNQNTNEYLEKIKQRLFENLRMLPHAPGVQMQAIPEDAIPEESGDEDEDDPDKRISICSSDKRIACEEEFSDSEEEGEGGRKNSSNFKKAKRVKTEDEKEKDPEEKKEVTEEEKTKEEKPEAKGVKEEVKLA"
-path_model = r"models\checkpoints\best_model_20250206-132136.pth"
+    smile = "Nc1ncnc(N2CCC(CC2)c2nc(cn2CCN2CCCC2)-c2ccc(F)c(c2)C(F)(F)F)c1F"
+    fasta = "MRRRRRRDGFYPAPDFRDREAEDMAGVFDIDLDQPEDAGSEDELEEGGQLNESMDHGGVGPYELGMEHCEKFEISETSVNRGPEKIRPECFELLRVLGKGGYGKVFQVRKVTGANTGKIFAMKVLKKAMIVRNAKDTAHTKAERNILEEVKHPFIVDLIYAFQTGGKLYLILEYLSGGELFMQLEREGIFMEDTACFYLAEISMALGHLHQKGIIYRDLKPENIMLNHQGHVKLTDFGLCKESIHDGTVTHTFCGTIEYMAPEILMRSGHNRAVDWWSLGALMYDMLTGAPPFTGENRKKTIDKILKCKLNLPPYLTQEARDLLKKLLKRNAASRLGAGPGDAGEVQAHPFFRHINWEELLARKVEPPFKPLLQSEEDVSQFDSKFTRQTPVDSPDDSTLSESANQVFLGFTYVAPSVLESVKEKFSFEPKIRSPRRFIGSPRTPVSPVKFSPGDFWGRGASASTANPQTPVEYPMETSGIEQMDVTMSGEASAPLPIRQPNSGPYKKQAFPMISKRPEHLRMNL"
+    path_model = r"models\checkpoints\cnn_affinity\trial_1_loss_0.1974.pth"
 
-affinity = predict_affinity(smile, fasta, path_model)
-affinity = np.power(10, affinity) # As we performed a log transformation in the training, we need to revert it
-affinity = round(affinity, 2)
-print(f"Predicted affinity: {affinity}")
+    best_trial = get_best_trial("models/cnn_affinity.db", study_name="cnn_affinity")
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    tokenizer_fasta = AutoTokenizer.from_pretrained("facebook/esm2_t12_35M_UR50D",trust_remote_code=True)
+    model_fasta = AutoModel.from_pretrained("facebook/esm2_t12_35M_UR50D", torch_dtype=torch.float16).to(device)
+    tokenizer_smiles = AutoTokenizer.from_pretrained("seyonec/PubChem10M_SMILES_BPE_450k")
+    model_smiles = AutoModel.from_pretrained("seyonec/PubChem10M_SMILES_BPE_450k").to(device)
+
+
+    raw = predict_affinity(smile, fasta, path_model, best_trial=best_trial)
+    affinity = 10 ** -raw # As we used -log10(affinity) during training, we need to reverse this transformation
+
+    affinity = round(affinity, 2)
+    print(f"Predicted affinity: {affinity}")
