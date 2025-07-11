@@ -16,6 +16,7 @@ import optuna
 import argparse
 import subprocess
 import json
+from sklearn.metrics import mean_squared_error, r2_score
 
 torch._dynamo.config.suppress_errors = True
 torch._dynamo.disable()
@@ -38,6 +39,7 @@ def args_parser():
     parser.add_argument("--visualize", action="store_true", help="Visualize the study results using optuna built-in dashboard. Default is False")
     parser.add_argument("--n_trials", type=int, default=20, help="Number of trials for the optimization. Default is 20")
     parser.add_argument("--create_subfolders", action="store_true", help="Create subfolders for the models and checkpoints. Default is False")
+    parser.add_argument("--verbose", action="store_true", help="Print verbose output during training. Default is False")
     return parser.parse_args()
 
 
@@ -188,7 +190,7 @@ class IC50Dataset(Dataset):
 
 class CombinedModel(nn.Module):
     # By default, ChemBERTa and ESM2 embeddings are 384 and 320 dimensions respectively.
-    def __init__(self, smiles_model_dim=768, fasta_model_dim=480, hidden_dim=512, dropout=0.3, num_layers=2, n_attention_heads=8):
+    def __init__(self, smiles_model_dim=768, fasta_model_dim=480, hidden_dim=512, dropout=0.3, num_layers=2, n_attention_heads=8, verbose=False):
         super(CombinedModel, self).__init__()
         
         self.fc_chem = nn.Sequential(
@@ -218,11 +220,11 @@ class CombinedModel(nn.Module):
         )
 
         if hidden_dim % n_attention_heads != 0:
-            print(f"hidden_dim {hidden_dim} must be divisible by n_attention_heads {n_attention_heads} for the model to work properly.")
             for i in range(n_attention_heads, 0, -1):
                 if hidden_dim % i == 0:
                     n_attention_heads = i
-                    print(f"Adjusted n_attention_heads to {n_attention_heads} to ensure divisibility with hidden_dim {hidden_dim}.")
+                    if verbose:
+                        print(f"Adjusted n_attention_heads to {n_attention_heads} to ensure divisibility with hidden_dim {hidden_dim}.")
                     break
             if hidden_dim % n_attention_heads != 0:
                 n_attention_heads = 1
@@ -299,7 +301,7 @@ def objective(trial, train_dataset, val_dataset):
 
     smiles_embedding_dim = train_dataset.smiles_embeddings.shape[1]
     fasta_embedding_dim = train_dataset.bert_embeddings.shape[1]
-    model = CombinedModel(smiles_model_dim=smiles_embedding_dim, fasta_model_dim=fasta_embedding_dim, hidden_dim=hidden_dim, dropout=dropout, num_layers=num_layers, n_attention_heads=n_attention_heads).to(device)
+    model = CombinedModel(smiles_model_dim=smiles_embedding_dim, fasta_model_dim=fasta_embedding_dim, hidden_dim=hidden_dim, dropout=dropout, num_layers=num_layers, n_attention_heads=n_attention_heads, verbose = args.verbose).to(device)
     
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
@@ -334,13 +336,15 @@ def train_model_with_optuna(trial, model, train_loader, val_loader, lr, weight_d
     scaler = GradScaler()
     
     best_val_loss = float('inf')
-    
+    best_mse = float('inf')
+    best_r2 = float('-inf')
 
     early_stopping_patience = trial.suggest_int("early_stopping_patience", 5, 15) 
     early_stopping_delta = trial.suggest_float("early_stopping_delta", 1e-4, 5e-3, log=True)
     early_stopping = EarlyStopping(patience=early_stopping_patience, delta=early_stopping_delta)
  
-    
+
+
     for epoch in range(epochs):
         model.train()
         train_loss = 0.0
@@ -371,17 +375,25 @@ def train_model_with_optuna(trial, model, train_loader, val_loader, lr, weight_d
         
         all_preds, all_targets = np.array(all_preds), np.array(all_targets)
         avg_val_loss = val_loss / len(val_loader)
-        
+
+        r2 = r2_score(all_targets, all_preds)
+        mse = mean_squared_error(all_targets, all_preds)
+        print(f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Val Loss: {avg_val_loss:.4f}, R2: {r2:.4f}, MSE: {mse:.4f}")
+
         scheduler.step(avg_val_loss)
         
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
+            best_r2 = r2
+            best_mse = mse
         
             
         early_stopping(avg_val_loss)
         if early_stopping.early_stop:
             print("Early stopping")
             break
+    
+    
     
     # Save model params in json format
     params = {
@@ -397,6 +409,9 @@ def train_model_with_optuna(trial, model, train_loader, val_loader, lr, weight_d
         "scheduler_factor": float(scheduler_factor),
         "early_stopping_patience": early_stopping_patience,
         "early_stopping_delta": float(early_stopping_delta),
+        "best_val_loss": best_val_loss,
+        "r2": best_r2,
+        "mse": best_mse
     }
     all_trials = []
 
@@ -414,7 +429,6 @@ def train_model_with_optuna(trial, model, train_loader, val_loader, lr, weight_d
         torch.save(model.state_dict(), f)
     trial.set_user_attr("model_path", model_path)
     
-
 
     return best_val_loss
 
