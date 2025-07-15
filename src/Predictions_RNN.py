@@ -125,6 +125,25 @@ def save_molecule_image(smiles, filename):
         Draw.MolToFile(mol, filename)
 
 def generate_druglike_molecules(model_path, char_to_idx, vocab_size, num_molecules=100, min_length = 30, max_length=100, temperature=1.0, save_images=False, output_dir="generated_molecules"):
+    """
+    Generate drug-like molecules using a pretrained RNN model.
+
+    Parameters:
+        model_path (str): Path to the trained model.
+        char_to_idx (dict): Character to index mapping.
+        vocab_size (int): Size of the vocabulary.
+        num_molecules (int): Number of molecules to generate.
+        min_length (int): Minimum length of generated SMILES.
+        max_length (int): Maximum length of generated SMILES.
+        temperature (float): Sampling temperature.
+        save_images (bool): Whether to save images of the generated molecules.
+        output_dir (str): Directory to save the generated molecules.
+
+    Returns:
+        list: List of generated drug-like molecules in SMILES format.
+    """
+
+
     model = load_model(model_path, char_to_idx, vocab_size)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -192,11 +211,11 @@ def generate_druglike_molecules(model_path, char_to_idx, vocab_size, num_molecul
             sas_score = calculate_sas(smiles)
             writer.writerow([smiles, True, sas_score])  
 
-    print(f"Drug-like molecules saved to '{smiles_file}'.")
-    print(f"CSV file saved to '{csv_file}'.")
+    print(f"[INFO] Generated {len(druglike_molecules)} drug-like molecules.")
+    print(f"[INFO] SMILES saved to {smiles_file}.")
+    print(f"[INFO] CSV file saved to {csv_file}.")
     if save_images:
-        print(f"Molecule images saved to '{image_dir}'.")
-
+        print(f"[INFO] Images saved to {image_dir}.")
     return druglike_molecules
 
 
@@ -215,7 +234,7 @@ def get_filename_regex_json(json_path, base_name):
         json_data = json.load(file)
     for path in json_data.keys():
         if re.search(rf"\\{re.escape(base_name)}\.txt$", path):
-            print(f"Found: {path}")
+            print(f"[INFO] Found matching path: {path}")
             return path
     return None
 
