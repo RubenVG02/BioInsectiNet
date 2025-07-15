@@ -15,7 +15,7 @@ def get_all_trials(db_path, study_name=None):
 
     if not study_name:
         study_name = db_path.split("/")[-1].split(".")[0]
-        print(f"Using study name: {study_name}")
+        print(f"[INFO] Using study name: {study_name}")
     study = optuna.load_study(study_name= study_name, storage=f"sqlite:///{db_path}")
     trials = study.trials
     hyperparams = {}
@@ -28,8 +28,8 @@ def get_all_trials(db_path, study_name=None):
     with open(f"models/hyperparams_{db_path.split('/')[-1].split('.')[0]}.json", "w") as f:
         json.dump(hyperparams, f, indent=4)
 
-    print(f"Hyperparameters saved to models/hyperparams_{db_path.split('/')[-1].split('.')[0]}.json with {len(hyperparams)} trials.")
-
+    print(f"[INFO] Hyperparameters saved to models/hyperparams_{db_path.split('/')[-1].split('.')[0]}.json")
+    return hyperparams
 
 def get_best_trial(db_path, study_name=None):
     """
@@ -44,7 +44,7 @@ def get_best_trial(db_path, study_name=None):
 
     if not study_name:
         study_name = db_path.split("/")[-1].split(".")[0]
-        print(f"Using study name: {study_name}")
+        print(f"[INFO] Using study name: {study_name}")
     study = optuna.load_study(study_name=study_name, storage=f"sqlite:///{db_path}")
     best_trial = study.best_trial
     best_hyperparams = {
@@ -57,7 +57,7 @@ def get_best_trial(db_path, study_name=None):
         import json
         json.dump(best_hyperparams, f, indent=4)
 
-    print(f"Best hyperparameters saved to models/best_hyperparams_{db_path.split('/')[-1]}.json.")
+    print(f"[INFO] Best hyperparameters saved to models/best_hyperparams_{db_path.split('/')[-1]}.json")
     return best_hyperparams
 
 
