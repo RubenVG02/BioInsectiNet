@@ -10,7 +10,7 @@ def extract_smiles_from_csv(input_csv, output_txt, separator=";"):
         separator (str): Separator used in the CSV file.
     """
     df = pd.read_csv(f"{input_csv}", sep=separator, low_memory=False, on_bad_lines="skip")
-    print(df.columns.names)
+    print(f"[INFO] Loaded {len(df)} rows from {input_csv}.")
     unique_smiles = df["Smiles"].unique()
     with open(f"{output_txt}", "w") as file:
         for smile in unique_smiles:
@@ -32,7 +32,7 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
         str: Name of the output CSV file.
     """
 
-    print(f"Loading data from {input_tsv}...")
+    print(f"[INFO] Starting cleaning process for {input_tsv}...")
 
     if not input_tsv.endswith(".tsv"):
         input_tsv += ".tsv"
@@ -42,10 +42,11 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
     df = pd.read_csv(f"{input_tsv}", sep="\t", usecols=[col_smiles, col_ic50, col_seq], on_bad_lines="skip", low_memory=False)
 
     if df.empty:
-        print(f"Warning: The file {input_tsv} is empty or contains only bad lines.")
+        print(f"[ERROR] The input file {input_tsv} is empty or does not contain the specified columns.")
         return None
+    
 
-    print("Cleaning and filtering data...")
+    print("[INFO] Cleaning data...")
 
     df.rename(columns={col_smiles: "Smiles", col_ic50: "IC50", col_seq: "Sequences"}, inplace=True)
 
@@ -62,10 +63,11 @@ def clean_CNN_data(input_tsv, output_csv, col_smiles="Ligand SMILES", col_ic50="
 
     df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-    print(f"Saving cleaned data to {output_csv}...")
+    print(f"[INFO] Cleaned data contains {len(df)} rows after processing.")
+    print(f"[INFO] Saving cleaned data to {output_csv}...")
     df.to_csv(f"{output_csv}", index=False, sep=",", float_format="%.6g")
 
-    print("Cleaning process completed!")
+    print(f"[INFO] Data saved to {output_csv}.")
     return f"{output_csv}"
 
 
