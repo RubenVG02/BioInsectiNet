@@ -15,7 +15,7 @@ def generate_sdf_from_smiles(smile, name):
     try:
         mol = Chem.MolFromSmiles(smile)
         if mol is None:
-            print("Invalid SMILES")
+            print(f"[ERROR] Invalid SMILES: {smile}")
             return "Invalid SMILES"
         
         mol = Chem.AddHs(mol)
