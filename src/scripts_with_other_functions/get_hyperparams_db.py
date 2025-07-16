@@ -31,7 +31,7 @@ def get_all_trials(db_path, study_name=None):
     print(f"[INFO] Hyperparameters saved to models/hyperparams_{db_path.split('/')[-1].split('.')[0]}.json")
     return hyperparams
 
-def get_best_trial(db_path, study_name=None):
+def get_best_trial(db_path, study_name=None, verbose=False):
     """
     Extracts the best trial from a database file.
 
@@ -57,7 +57,8 @@ def get_best_trial(db_path, study_name=None):
         import json
         json.dump(best_hyperparams, f, indent=4)
 
-    print(f"[INFO] Best hyperparameters saved to models/best_hyperparams_{db_path.split('/')[-1]}.json")
+    if verbose:
+        print(f"[INFO] Best hyperparameters saved to models/best_hyperparams_{db_path.split('/')[-1]}.json")
     return best_hyperparams
 
 
