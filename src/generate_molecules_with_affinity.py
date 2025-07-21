@@ -1,8 +1,7 @@
 
 from mega import Mega
-import csv
 
-from predictions_RNN import generate_druglike_molecules, load_unique_chars_dict
+from generation_RNN import generate_druglike_molecules, load_unique_chars_dict
 from check_affinity import predict_affinity, get_best_trial
 
 import pandas as pd
