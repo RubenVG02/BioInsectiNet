@@ -36,7 +36,7 @@ def parse_arguments():
     parser.add_argument("--model_path", type=str, default="models\generator\insects_smiles_v1.pth", help="Path to the trained model. By default, it uses the pretrained model for generating insect drug-like molecules.")
     parser.add_argument("--data_path", type=str, help="Path to the SMILES dataset. By default, it uses the dataset used to train the model.")
     parser.add_argument("--save_dir", type=str, default="generated_molecules", help="Directory to save the generated molecules. By default, it saves the molecules in the 'generated_molecules' directory.")
-    parser.add_argument("--num_molecules", type=int, default=250, help="Number of molecules to generate. By default, it generates 250 molecules.")
+    parser.add_argument("--num_molecules", type=int, default=250, help="Number of molecules to generate.")
     parser.add_argument("--min_length", type=int, default=20, help="Minimum length of generated SMILES. By default, it generates molecules with a minimum length of 20 characters.")
     parser.add_argument("--max_length", type=int, default=150, help="Maximum length of generated SMILES. By default, it generates molecules with a maximum length of 500 characters.")
     parser.add_argument("--temperature", type=float, default=1.0, help="Sampling temperature. By default, it uses a temperature of 1.0.")
@@ -186,6 +186,7 @@ def generate_druglike_molecules(model_path, char_to_idx, vocab_size, num_molecul
     smiles_file = os.path.join(output_dir, "generated_molecules.smi")
     csv_file = os.path.join(output_dir, "generated_molecules.csv")
     previous_molecules = set()
+    new_generated_molecules = []
 
     
     if os.path.exists(csv_file):
@@ -198,13 +199,12 @@ def generate_druglike_molecules(model_path, char_to_idx, vocab_size, num_molecul
         with open(smiles_file, "r") as f:
             previous_molecules.update(line.strip() for line in f.readlines())
 
-    druglike_molecules = list(previous_molecules)  
+    druglike_molecules = list(previous_molecules)
+
     start_char = list(char_to_idx.keys())[0]  
 
     with tqdm(total=num_molecules, desc="Generating molecules") as pbar:
-        while len(druglike_molecules) - len(previous_molecules) < num_molecules:
-
-            
+        while len(druglike_molecules) - len(previous_molecules) < num_molecules:            
 
             smiles = generate_smiles(model, start_char, max_length, temperature)
             smiles = smiles.replace('\n', '')  
@@ -223,6 +223,7 @@ def generate_druglike_molecules(model_path, char_to_idx, vocab_size, num_molecul
 
             # Every time a molecule is generated and is drug-like, it is saved, and the progress bar is updated, avoiding duplicates and molecules that are not drug-like
             druglike_molecules.append(smiles)
+            new_generated_molecules.append(smiles)
             pbar.update(1)
 
             if save_images:
@@ -230,24 +231,24 @@ def generate_druglike_molecules(model_path, char_to_idx, vocab_size, num_molecul
                 save_molecule_image(smiles, image_filename)
 
 
-    with open(smiles_file, "w") as f:
-        for smiles in druglike_molecules:
+    with open(smiles_file, "a") as f:
+        for smiles in new_generated_molecules:
             f.write(smiles + "\n")
 
 
-    with open(csv_file, "w", newline="") as f:
+    with open(csv_file, "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["SMILES", "Drug-like", "SAS Score"])  
-        for smiles in druglike_molecules:
+        for smiles in new_generated_molecules:
             sas_score = calculate_sas(smiles)
             writer.writerow([smiles, True, sas_score])  
 
-    print(f"[INFO] Generated {len(druglike_molecules)} drug-like molecules.")
+    print(f"[INFO] Generated {len(new_generated_molecules)} drug-like molecules.")
     print(f"[INFO] SMILES saved to {smiles_file}.")
     print(f"[INFO] CSV file saved to {csv_file}.")
     if save_images:
         print(f"[INFO] Images saved to {image_dir}.")
-    return druglike_molecules
+    return new_generated_molecules
 
 
 def calculate_sas(smiles):
