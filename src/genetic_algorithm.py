@@ -1,79 +1,120 @@
 from rdkit import Chem
-from rdkit.Chem import Draw, Descriptors, RWMol
+from rdkit.Chem import Descriptors, BRICS, Draw
 import random
 import csv
-import numpy as np
-import pandas as pd
-import time
+import argparse
+import os
 
-from affinity_with_target_and_generator import find_candidates
-from check_affinity import calculate_affinity
+from generate_molecules_with_affinity import find_candidates
+from check_affinity import predict_affinity, get_best_trial
 
+best_trial = get_best_trial("models/cnn_affinity.db", study_name="cnn_affinity")
 
-def select_parents(initial_population, target, bests=2):
+LIPINSKI_MAX_MWT = 500
+LIPINSKI_MAX_LOGP = 5
+LIPINSKI_MAX_HDONORS = 5
+LIPINSKI_MAX_HACCEPTORS = 10
+
+DEFAULT_BESTS_TO_SELECT = 2
+DEFAULT_MUTATION_ATTEMPTS = 10 # Attempts *per mutation operation*
+DEFAULT_MUTATION_RATE = 0.1
+DEFAULT_STAGNATION_LIMIT = 6  # Generations without improvement to trigger alternative strategy
+DEFAULT_NUM_MUTATIONS_PER_SMILE = 5 # Number of independent mutation attempts on a single SMILE
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Run a genetic algorithm to optimize SMILES strings for a target sequence.")
+    
+    # General arguments
+    parser.add_argument("--target_fasta", type=str, required=True, help="Target FASTA.")
+    parser.add_argument("--generate_smiles_from_optimizer", action="store_true", help="Generate initial population using the optimizer.")
+    parser.add_argument("--initial_pop_source", type=str, help="Initial population source (file path or list of SMILES).")
+    parser.add_argument("--objective_ic50", type=float, default=50, help="Objective IC50 value for the target.")
+    parser.add_argument("--generations", type=int, default=100, help="Number of generations to run.")
+    parser.add_argument("--population_size", type=int, default=50, help="Target population size per generation.")
+    parser.add_argument("--num_parents_select", type=int, default=DEFAULT_BESTS_TO_SELECT, help="Number of best candidates to select for reproduction.")
+    parser.add_argument("--mutation_rate", type=float, default=DEFAULT_MUTATION_RATE, help="Probability of mutation for each atom in the molecule.")
+    parser.add_argument("--stagnation_limit", type=int, default=DEFAULT_STAGNATION_LIMIT, help="Generations without improvement to trigger alternative strategy.")
+    parser.add_argument("--output_dir", type=str, default="ga_results", help="Directory to save results.")
+    parser.add_argument("--all_results_file", type=str, default="all_scored_molecules.csv", help="File to save all scored molecules.")
+    parser.add_argument("--best_overall_file", type=str, default="best_molecule_overall.csv", help="File to save the best molecule overall.")
+    parser.add_argument("--initial_best_file", type=str, default="best_molecule_initial.csv", help="File to save the best molecule from the initial population.")
+    parser.add_argument("--image_dir", type=str, default="molecule_images", help="Subdirectory for images of molecules.")
+    parser.add_argument("--mutation_attempts", type=int, default=DEFAULT_MUTATION_ATTEMPTS, help="Number of attempts to generate valid children.")
+    parser.add_argument("--generator_output_name_destination", type=str, default="generated_molecules", help="Name of the file to save generated molecules.")
+
+    # Args for generating initial population with optimizer
+    parser.add_argument("--generator_ic50_multiplier", type=float, default=20.0, help="Multiplier for the objective IC50 when generating initial population.")
+    parser.add_argument("--generator_population_multiplier", type=float, default=15.0, help="Multiplier for the population size when generating initial population.")
+    parser.add_argument("--upload_to_mega", action='store_true', help="Upload result CSV to Mega.")
+    parser.add_argument("--draw_lowest", action='store_true', help="Save image of molecule with best IC50.")
+    parser.add_argument("--db_smiles", action='store_true', help="Use pre-generated SMILES from file.")
+    parser.add_argument("--path_db_smiles", type=str, default=r"generated_molecules/generated_molecules.smi", help="Path to SMILES file.")
+    parser.add_argument("--generate_qr", action='store_true', help="Generate QR code to Mega link.")
+    parser.add_argument("--affinity_model_path", type=str, default=r"models/checkpoints/cnn_affinity/trial_1_loss_0.1974.pth", help="Path to IC50 prediction model.")
+    parser.add_argument("--db_affinity_path", type=str, default="models/cnn_affinity.db", help="Path to affinity model DB.")
+    parser.add_argument("--study_name", type=str, default="cnn_affinity", help="Name of the study for hyperparameter optimization.")
+    parser.add_argument("--generator_model_path", type=str, default=r"models/generator/bindingDB_smiles_filtered_v1.pth", help="Path to RNN generator model.")
+    parser.add_argument("--smiles_to_draw", type=int, default=1, help="Number of top SMILES to draw if draw_lowest is True.")
+
+    
+    return parser.parse_args()
+
+def load_smiles_from_file(file_path: str) -> list:
     """
-    Select the parents for the first generations of the genetic algorithm.
-    The parents are the molecules with the best affinity to the target.
+    Load a list of SMILES strings from a CSV file.
 
     Parameters:
-        initial_population (str or list): Path of the file with the initial population of molecules 
-                                          or a list of SMILES strings.
-        target (str): Sequence of the target in FASTA format.
-        bests (int, optional): Number of best molecules to select as parents. Defaults to 2.
-    
+        file_path (str): Path to the CSV file.
+
     Returns:
-        list of tuples: List of tuples containing the best molecules and their affinities.
+        list of str: List of SMILES strings.
     """
+    smiles_list = []
+    _, ext = os.path.splitext(file_path)
+    ext = ext.lower()
 
-    def load_population(file_path):
-         
-        """
-        Load a list of SMILES strings from a CSV file.
-
-        Parameters:
-            file_path (str): Path to the CSV file.
-
-        Returns:
-            list of str: List of SMILES strings.
-        """
-
+    if ext == ".smi":
         with open(file_path, "r") as file:
-            reader = csv.reader(file)
-            return [row[0] for row in reader][1:]
-
-    def score_population(population):
-
-        """
-        Score a population of SMILES strings based on their affinity to the target.
-
-        Parameters:
-            population (list of str): List of SMILES strings.
-
-        Returns:
-            list of tuples: List of tuples containing SMILES strings and their affinities, sorted by affinity.
-        """
-
-        scores = [calculate_affinity(smile=i, fasta=target) for i in population]
-        return sorted(zip(population, scores), key=lambda x: x[1])
-
-    if "generate" in initial_population:
-        find_candidates(max_molecules=5, db_smiles=True, target=target, draw_minor=False, generate_qr=False,
-                        upload_to_mega=False, arx_db=r"generated_molecules/generated_molecules.txt",
-                        accepted_value=3000, name_file_destination="generated_w_algo")
-        initial_population = load_population("generated_w_algo.csv")
-
-    elif ".csv" in initial_population or ".txt" in initial_population:
-        initial_population = load_population(initial_population)
-
+            for line in file:
+                smile = line.strip()
+                if smile:
+                    smiles_list.append(smile)
     else:
-        initial_population = [i.replace("@", "").replace("/", "") for i in initial_population]
+        with open(file_path, "r", newline='') as file:
+            reader = csv.reader(file)
+            try:
+                first_row = next(reader)
+                # Check if the first row is a header
+                if any("SMILES" in col.lower() for col in first_row):
+                    pass 
+                else:
+                    if first_row[0].strip():
+                        smiles_list.append(str(first_row[0].strip()))
+                for row in reader:
+                    if row and row[0].strip():
+                        smiles_list.append(str(row[0].strip()))
+            except StopIteration:
+                pass 
 
-    total = score_population(initial_population)
-    return total[:bests] if total else []
+    return smiles_list
+    
+def score_population(population: list, target: str):
+    """
+    Score a population of SMILES strings based on their affinity to the target.
 
+    Parameters:
+        population (list of str): List of SMILES strings.
+        target (str): Sequence of the target in FASTA format.
 
-def check_druglikeness(smile):
+    Returns:
+        list of tuples: List of tuples containing SMILES strings and their affinities, sorted by affinity.
+    """
+    scores = [10 ** - predict_affinity(smile, target, best_trial=best_trial, path_model=args.affinity_model_path) for smile in population]
+    scores = [round(score, 2) for score in scores]
+    print(f"[INFO] Scored {len(population)} molecules.")
+    return sorted(zip(population, scores), key=lambda x: x[1])
 
+def check_druglikeness(smile: str) -> bool:
     """
     Check if a molecule is druglike based on its SMILES string.
 
@@ -83,18 +124,15 @@ def check_druglikeness(smile):
     Returns:
         bool: True if the molecule is druglike, False otherwise.
     """
-
     mol = Chem.MolFromSmiles(smile)
     if mol:
-        return (Descriptors.ExactMolWt(mol) < 500 and
-                Descriptors.MolLogP(mol) < 5 and
-                Descriptors.NumHDonors(mol) < 5 and
-                Descriptors.NumHAcceptors(mol) < 10)
+        return (Descriptors.ExactMolWt(mol) < LIPINSKI_MAX_MWT and
+                Descriptors.MolLogP(mol) < LIPINSKI_MAX_LOGP and
+                Descriptors.NumHDonors(mol) < LIPINSKI_MAX_HDONORS and
+                Descriptors.NumHAcceptors(mol) < LIPINSKI_MAX_HACCEPTORS)
     return False
 
-
-def generate_children(parent1, parent2, mutation_attempts=10):
-
+def generate_children(parent1: str, parent2: str, mutation_attempts: int = DEFAULT_MUTATION_ATTEMPTS) -> list[str]:
     """
     Generate two new molecules by crossing two parent SMILES sequences.
 
@@ -104,196 +142,281 @@ def generate_children(parent1, parent2, mutation_attempts=10):
         mutation_attempts (int): Number of attempts to generate valid children. Defaults to 10.
 
     Returns:
-        tuple of str: Tuple of two child SMILES sequences or the original parents if valid children cannot be created.
+        list of str: List of two child SMILES sequences or the original parents if valid children cannot be created.
     """
 
-    def crossover(smile1, smile2):
-        crossover_point = random.randint(1, min(len(smile1), len(smile2)) - 1)
-        child1 = smile1[:crossover_point] + smile2[crossover_point:]
-        child2 = smile2[:crossover_point] + smile1[crossover_point:]
-        return child1, child2
+    from rdkit.Chem import BRICS
+
+    def crossover(smile1: str, smile2: str) -> tuple[str, str]:
+        mol1 = Chem.MolFromSmiles(smile1)
+        mol2 = Chem.MolFromSmiles(smile2)
+        if not mol1 or not mol2:
+            return smile1, smile2
+
+        # Fragment both molecules
+        frags1 = [frag for frag in BRICS.BRICSDecompose(mol1)]
+        frags2 = [frag for frag in BRICS.BRICSDecompose(mol2)]
+
+        if not frags1 or not frags2:
+            return smile1, smile2
+
+        # Select random fragments from each
+        frag1 = Chem.MolFromSmiles(random.choice(list(frags1)))
+        frag2 = Chem.MolFromSmiles(random.choice(list(frags2)))
+
+        # Combine fragments to form children
+        # (BRICS.BRICSBuild returns a generator)
+        try:
+            child1 = next(BRICS.BRICSBuild([frag1, frag2]))
+            child2 = next(BRICS.BRICSBuild([frag2, frag1]))
+            return child1, child2
+        except StopIteration:
+            return smile1, smile2
+
 
     child1, child2 = crossover(parent1, parent2)
-    if Chem.MolFromSmiles(child1) and Chem.MolFromSmiles(child2):
-        return child1, child2
+    child1 = Chem.MolToSmiles(child1) if isinstance(child1, Chem.Mol) else child1
+    child2 = Chem.MolToSmiles(child2) if isinstance(child2, Chem.Mol) else child2
+    if Chem.MolFromSmiles(child1) is  Chem.MolFromSmiles(child2):
+        print(f"Failed to crossover {parent1} and {parent2}. Returning parents.")
+        return [parent1, parent2]
+    
 
     if mutation_attempts > 0:
         return generate_children(parent1, parent2, mutation_attempts - 1)
     
-    print("Failed to generate valid children; returning original parents.")
-    return parent1, parent2
+    return [parent1, parent2]
 
 
-def mutate(smile, mutation_rate=0.1):
+from rdkit.Chem import BRICS
 
-    """
-    Mutate a molecule to obtain new molecule structures.
-
-    Parameters:
-        smile (str): SMILES string of the molecule.
-        mutation_rate (float): Probability of mutation for each atom in the molecule. Defaults to 0.1.
-
-    Returns:
-        list of str: List of mutated SMILES strings.
-    """
-    atoms = [6, 5, 7, 15, 8, 16, 9, 17, 35, 53]
-    aromatic_atoms = [6, 7, 15, 8, 16]
-
+def mutate(smile: str, num_mutations: int = DEFAULT_NUM_MUTATIONS_PER_SMILE) -> list[str]:
     mol = Chem.MolFromSmiles(smile)
     if not mol:
         return []
 
     mutated_smiles = set()
-    for _ in range(5):
+    fragments = list(BRICS.BRICSDecompose(mol))
+
+    if not fragments:
+        return []
+
+    for _ in range(num_mutations):
         try:
-            mol = Chem.MolFromSmiles(smile)
-            rw_mol = RWMol(mol)
-            num_atoms = rw_mol.GetNumAtoms()
-            for atom_idx in range(num_atoms):
-                if random.uniform(0, 1) <= mutation_rate:
-                    atom = rw_mol.GetAtomWithIdx(atom_idx)
-                    valence = atom.GetTotalValence()
-                    if atom.GetIsAromatic():
-                        if valence == 2:
-                            rw_mol.ReplaceAtom(atom_idx, Chem.Atom(random.choice(aromatic_atoms[1:])))
-                        elif valence == 3:
-                            rw_mol.ReplaceAtom(atom_idx, Chem.Atom(random.choice(aromatic_atoms[:3])))
-                    else:
-                        rw_mol.ReplaceAtom(atom_idx, Chem.Atom(random.choice(atoms[:4])))
-            Chem.SanitizeMol(rw_mol)
-            mutated_smile = Chem.MolToSmiles(rw_mol)
-            if check_druglikeness(mutated_smile):
-                mutated_smiles.add(mutated_smile)
+            # In order to create a mutation, we will remove a random fragment and add a new one
+            frag_to_remove = random.choice(fragments)
+            fragments_copy = fragments.copy()
+            fragments_copy.remove(frag_to_remove)
+
+            # Add a new fragment
+            random_small_frag = Chem.MolFromSmiles(random.choice(['C', 'CC', 'N', 'O']))  # Fragmentos simples
+            if random_small_frag:
+                # Create a new molecule by combining the remaining fragments with the new fragment
+                new_mol_generator = BRICS.BRICSBuild([Chem.MolFromSmiles(f) for f in fragments_copy] + [random_small_frag])
+                new_smile = next(new_mol_generator, None)
+                if new_smile:
+                    smile_str = Chem.MolToSmiles(new_smile)
+                    if smile_str and check_druglikeness(smile_str):
+                        mutated_smiles.add(smile_str)
         except Exception:
-            pass
+            continue
 
     return list(mutated_smiles)
 
 
-def prepare_file(file_path, headers=[]):
-    '''
+def prepare_file(file_path: str, headers: list[str] = []) -> None:
+    """
     Create a CSV file with specified headers.
 
     Parameters:
         file_path (str): Path to the file.
         headers (list of str): List of column names.
-    '''
+    """
     with open(f"{file_path}.csv", "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(headers)
 
-
-def genetic_algorithm(target="", initial_pop_path="", objective_ic50=20, generations=100, bests=2,
-                      path_save="", save_since=20, name_file_best="", name_img="result", initial="", name_img_initial=""):
-    '''
-    Find the best molecule to bind to a target protein using a genetic algorithm.
+def save_output(file_path: str, data: list[tuple[str, float]]) -> None:
+    """
+    Save the output to a CSV file.
 
     Parameters:
-        target (str): Sequence of the target protein in FASTA format.
-        initial_pop_path (str): Path of the initial population of SMILES molecules.
-        objective_ic50 (float): Desired IC50 value. Defaults to 20.
-        generations (int): Number of generations. Defaults to 100.
-        bests (int): Number of best molecules to select. Defaults to 2.
-        path_save (str): Path to save the best molecules.
-        save_since (float): IC50 value threshold to save molecules. Defaults to 20.
-        name_file_best (str): File name to save the best molecules.
-        name_img (str): Image file name for the best molecule.
-        initial (str): File name for the best molecule from the initial generation.
-        name_img_initial (str): Image file name for the initial best molecule.
-    '''
-    parents = select_parents(initial_population=initial_pop_path, target=target, bests=bests)
-    
-    best_parent = min(parents, key=lambda x: x[1])
-    prepare_file(file_path=path_save, headers=["SMILE", "Affinity"])
-    
-    with open(f"{initial}.csv", "a", newline="") as file:
+        file_path (str): Path to the file.
+        data (list of tuples): List of tuples containing SMILES strings and their affinities.
+    """
+    with open(f"{file_path}.csv", "a", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow([best_parent[0], best_parent[1]])
-        Draw.MolToImageFile(Chem.MolFromSmiles(best_parent[0]), filename=f"examples/best_molecule_{name_img_initial}.jpg", size=(400, 300))
-    
-    all_bests = []
-    sum_not_improve = 0
-    smiles_saved = []
-    best_generated = (best_parent[0], best_parent[1])
-    
+        for row in data:
+            writer.writerow(row)
+
+
+def genetic_algorithm(
+    target_fasta: str,
+    initial_pop_source: list[str],
+    objective_ic50: float = 20.0,
+    generations: int = 100,
+    population_size: int = 50,
+    num_parents_select: int = DEFAULT_BESTS_TO_SELECT,
+    mutation_rate: float = DEFAULT_MUTATION_RATE,
+    stagnation_limit: int = DEFAULT_STAGNATION_LIMIT,
+    output_dir: str = "ga_results",
+    all_results_file: str = "all_scored_molecules",
+    best_overall_file: str = "best_molecule_overall",
+    initial_best_file: str = "best_molecule_initial",
+    image_dir: str = "molecule_images"
+):
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(os.path.join(output_dir, image_dir), exist_ok=True)
+
+    if len(initial_pop_source) > population_size:
+        print(f"[INFO] Initial population size ({len(initial_pop_source)}) exceeds the target population size ({population_size}). Trimming to {population_size}.")
+        population = random.sample(initial_pop_source, population_size)
+    scored_population = score_population(population, target_fasta)
+
+    best_initial = scored_population[0]
+    save_output(os.path.join(output_dir, initial_best_file), [best_initial])
+
+    best_overall = best_initial
+    generations_without_improvement = 0
+
+    def tournament_selection(scored_population, num_parents, tournament_size=3):
+            selected_parents = []
+            for _ in range(num_parents):
+                tournament = random.sample(scored_population, tournament_size)
+                winner = min(tournament, key=lambda x: x[1])  # select the one with the lowest affinity
+                selected_parents.append(winner[0])  # get the SMILES of the winner
+            return selected_parents
+
     for gen in range(generations):
-        new_generation = []
+        print(f"Generation {gen+1}/{generations}")
         
-        if sum_not_improve >= 6:
-            print("Using child generation due to stagnation.")
-            parents = generate_children(smiles_saved[0], smiles_saved[1])
-            sum_not_improve = 0
-        else:
-            parents = [p[0] for p in parents]
-
-        for parent in parents:
-            new_generation.extend(mutate(smile=parent, mutation_rate=0.1))
-
-        score = [calculate_affinity(smile=smile, fasta=target) for smile in new_generation]
-        total = sorted(zip(new_generation, score), key=lambda x: x[1])
-        
-        with open(f"{path_save}.csv", "a") as file:
-            for item in total:
-                if item[1] <= save_since:
-                    if item[0] not in pd.read_csv(f"{path_save}.csv").SMILE.tolist():
-                        file.write(f"{item[0]}, {item[1]}\n")
-        
-        best = compare_ic50(list_score=total, objective_ic50=objective_ic50)
-        if best or gen == generations - 1:
-            best_individual, affinity = best if best else (None, None)
-            print(f"Generation: {gen + 1}")
-            print(f"Best SMILE sequence obtained: {best_individual}")
-            print(f"IC50 value: {affinity}")
-            
-            if best_individual:
-                molecule = Chem.MolFromSmiles(best_individual)
-                Draw.MolToImageFile(molecule, filename=f"examples/best_molecule_{name_img}.jpg", size=(400, 300))
-                prepare_file(file_path=name_file_best, headers=["SMILE", "Affinity"])
-                with open(f"{name_file_best}.csv", "a") as file:
-                    file.write(f"{best_individual}, {affinity}\n")
+        if best_overall[1] <= objective_ic50:
+            print(f"Objective IC50 {objective_ic50} reached with {best_overall[1]:.2f}. Stopping.")
             break
-        
-        parents = total[:bests]
-        
-        if gen == 0:
-            all_bests.append(float(parents[0][1]))
-            min_ic50 = min(all_bests)
-            best_generated = (parents[0][0], parents[0][1])
-        else:
-            min_ic50 = min(all_bests)
-            if float(parents[0][1]) >= min_ic50:
-                smiles_saved = [x[0] for x in total]
-                smiles_saved = [smiles_saved[0], smiles_saved[random.randint(1, len(smiles_saved) - 1)]]
-                sum_not_improve += 1
+
+        parents = tournament_selection(scored_population, num_parents_select, tournament_size=3)
+
+        children = []
+        while len(children) < population_size:
+            p1, p2 = random.sample(parents, 2)
+            children.extend(generate_children(p1, p2))
+
+        mutated_children = []
+        for child in children:
+            if random.random() < mutation_rate:
+                mutated = mutate(child)
+                if mutated:
+                    mutated_children.extend(mutated)
             else:
-                if best_generated[1] > parents[0][1]:
-                    best_generated = (parents[0][0], parents[0][1])
-                sum_not_improve = 0
-            if parents[0][1] not in all_bests:
-                all_bests.append(float(parents[0][1]))
+                mutated_children.append(child)
+           
 
-        print(f"Generation: {gen + 1}")
-        print(f"Best SMILE sequence obtained this generation: {parents[0][0]}")
-        if parents[0][0] != best_generated[0]:
-            print(f"Best SMILE sequence obtained overall: {best_generated[0]}")
-        print(f"IC50 value: {parents[0][1]}")
-        if float(parents[0][1]) >= min_ic50:
-            print("Value not improved")
-        time.sleep(4)
+        next_gen_candidates = [
+            mol for mol in mutated_children
+            if Chem.MolFromSmiles(mol) and check_druglikeness(mol)
+        ]
+
+        if len(next_gen_candidates) < population_size:
+            next_gen_candidates.extend(parents)
+            next_gen_candidates = next_gen_candidates[:population_size]
+
+        scored_population = score_population(next_gen_candidates, target_fasta)
+        scored_population = list(set(scored_population))  # Remove duplicates
+        scored_population = sorted(scored_population, key=lambda x: x[1])
+
+        save_output(os.path.join(output_dir, all_results_file), scored_population)
+
+        if scored_population[0][1] < best_overall[1]:
+            best_overall = scored_population[0]
+            generations_without_improvement = 0
+            print(f"New best: {best_overall}")
+        else:
+            generations_without_improvement += 1
+            print(f"No improvement. Stagnation: {generations_without_improvement}/{stagnation_limit}. Current best: {best_overall}")
+
+        if generations_without_improvement >= stagnation_limit:
+            print("Stagnation limit reached. Stopping.")
+            save_output(os.path.join(output_dir, best_overall_file), [best_overall])
+            break
+
+    print(f"Best molecule found: {best_overall}")
+    if image_dir:
+        best_mol = Chem.MolFromSmiles(best_overall[0])
+        if best_mol:
+            img_path = os.path.join(output_dir, image_dir, f"best_molecule_gen{gen+1}.png")
+            Draw.MolToFile(best_mol, img_path)
+            print(f"Image of the best molecule saved to {img_path}")
+    return best_overall
+  
+if __name__ == "__main__":
+    args = parse_arguments()
+    if os.path.exists(os.path.join("output_ga", args.output_dir)):
+        i = 1
+        while os.path.exists(os.path.join("output_ga", f"{args.output_dir}_{i}")):
+            i += 1
+        print(f"[INFO] Output directory already exists. Creating a new one: {args.output_dir}_{i}")
+        output_dir = os.path.join("output_ga", f"{args.output_dir}_{i}")
+    else:
+        print(f"[INFO] Creating output directories: {args.output_dir} and {args.image_dir}")
+        output_dir = os.path.join("output_ga", args.output_dir)
+    image_dir = os.path.join(output_dir, args.image_dir)
+    os.makedirs("output_ga", exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(image_dir, exist_ok=True)
     
+    # Prepare output files
+    prepare_file(os.path.join(output_dir, args.all_results_file), headers=["SMILES", "Affinity"])
+    prepare_file(os.path.join(output_dir, args.best_overall_file), headers=["SMILES", "Affinity"])
+    prepare_file(os.path.join(output_dir, args.initial_best_file), headers=["SMILES", "Affinity"])
+    
+    if args.generate_smiles_from_optimizer and args.initial_pop_source is not None:
+        raise ValueError("Cannot specify both --generate_smiles_from_optimizer and --initial_pop_source.")
 
-def compare_ic50(list_score, objective_ic50):
-    '''
-    Compare the affinity of molecules with the objective IC50 value.
+    if args.generate_smiles_from_optimizer:
+        # Generate initial population using the optimizer
+        # In order to save time, the objective IC50 is set to a higher value than the one used in the genetic algorithm
+        print("[INFO] Generating initial population using the optimizer...")
+        find_candidates(
+            target=args.target_fasta,
+            name_file_destination=args.generator_output_name_destination,
+            max_molecules=args.population_size,
+            total_generated=int(args.population_size * args.generator_population_multiplier),
+            accepted_value=args.objective_ic50 * args.generator_ic50_multiplier,
+            upload_to_mega=args.upload_to_mega,
+            draw_lowest=args.draw_lowest,
+            smiles_to_draw=args.smiles_to_draw,
+            db_smiles=args.db_smiles,
+            path_db_smiles=args.path_db_smiles,
+            generate_qr=args.generate_qr,
+            affinity_model_path=args.affinity_model_path,
+            db_affinity_path=args.db_affinity_path,
+            study_name=args.study_name,
+            generator_model_path=args.generator_model_path,
+            output_dir=output_dir    
+        )
 
-    Parameters:
-        list_score (list of tuples): List of tuples containing SMILES and affinity values.
-        objective_ic50 (float): Desired IC50 value.
+        initial_population = load_smiles_from_file(os.path.join(output_dir, args.generator_output_name_destination, args.generator_output_name_destination + ".csv"))
 
-    Returns:
-        tuple of str or bool: Tuple of the best SMILES sequence and its affinity if the objective is met, otherwise False.
-    '''
-    for item in list_score:
-        if item[1] <= objective_ic50:
-            return item[0], item[1]
-    return False
+    elif args.initial_pop_source and os.path.isfile(args.initial_pop_source):
+        print(f"[INFO] Loading initial population from {args.initial_pop_source}...")
+        initial_population = load_smiles_from_file(args.initial_pop_source)
+    else:
+        print("[INFO] Using provided initial population source as a list of SMILES.")
+        initial_population = args.initial_pop_source.split(',')
+
+    # Run the genetic algorithm
+    genetic_algorithm(
+        target_fasta=args.target_fasta,
+        initial_pop_source=initial_population,
+        objective_ic50=args.objective_ic50,
+        generations=args.generations,
+        population_size=args.population_size,
+        num_parents_select=args.num_parents_select,
+        mutation_rate=args.mutation_rate,
+        stagnation_limit=args.stagnation_limit,
+        output_dir=output_dir,
+        all_results_file=args.all_results_file,
+        best_overall_file=args.best_overall_file,
+        initial_best_file=args.initial_best_file,
+        image_dir=args.image_dir
+    )
