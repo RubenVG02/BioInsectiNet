@@ -134,3 +134,4 @@ samples/
 *.npy
 data_zinc/
 samples
+vina.exe
