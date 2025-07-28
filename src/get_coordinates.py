@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import platform
 import stat
 
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Fix for RDKit on some systems
+
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Docking pipeline using RDKit + Meeko + Vina.")
