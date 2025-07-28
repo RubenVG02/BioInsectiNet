@@ -1,27 +1,27 @@
-name: bioinsectinet
+name: bioinsectinet_env
 channels:
-  - defaults
   - conda-forge
   - bioconda
+  - schrodinger
+  - defaults
 dependencies:
-  - python=3.11
+  - python=3.10
   - pip
+  - pymol-bundle
+  - rdkit
+  - pandas
+  - numpy
+  - matplotlib
+  - scikit-learn
+  - tqdm
+  - nltk
+  - openbabel
   - pip:
-      - mega.py # for uploading the results (optional)
-      - pandas
+      - mega.py
       - requests
-      - qrcode # for the QR code (optional)
-      - scikit-learn
-      - torch
-      - pandas
-      - numpy
-      - matplotlib
-      - tqdm # for the progress bar
-      - nltk # for the BLEU score
-      - sascorer # for the SA score
-      - argparse # for the command line arguments
-      - rdkit # for the molecular fingerprints
-      - optuna # for the hyperparameter optimization
-      - fair-esm # for the tokenizer 
-
-
+      - qrcode
+      - fair-esm
+      - transformers
+      - optuna
+      - sympy
+      - meeko==0.4.0
