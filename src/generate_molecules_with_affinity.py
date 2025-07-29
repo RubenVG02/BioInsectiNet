@@ -20,7 +20,7 @@ from rdkit.Chem import RDConfig
 sys.path.append(os.path.join(RDConfig.RDContribDir, 'SA_Score'))
 import sascorer
 
-def arg_parser():
+def parse_arguments():
     """
     Parse command line arguments.
     
@@ -240,11 +240,9 @@ def find_candidates(
             os.makedirs(qr_dir, exist_ok=True)
             qr.save(os.path.join(qr_dir, f"qr_{name_file_destination}.png"))
 
-if __name__ == "__main__":
-    # Example fasta sequence
-    target = "MTSVMSHEFQLATAETWPNPWPMYRALRDHDPVHHVVPPQRPEYDYYVLSRHADVWSAARDH" 
-    args = arg_parser()
-
+def main(args=None):
+    if args is None:
+        args = parse_arguments()
     find_candidates(
         target=args.target,
         name_file_destination=args.name_file_destination,
@@ -252,7 +250,6 @@ if __name__ == "__main__":
         upload_to_mega=args.upload_to_mega,
         draw_lowest=args.draw_lowest,
         max_molecules=args.max_molecules,
-        total_generated=args.total_generated,
         db_smiles=args.db_smiles,
         path_db_smiles=args.path_db_smiles,
         accepted_value=args.accepted_value,
@@ -260,6 +257,11 @@ if __name__ == "__main__":
         affinity_model_path=args.affinity_model_path,
         generator_model_path=args.generator_model_path,
         db_affinity_path=args.db_affinity_path,
-        study_name=args.study_name,     
-        smiles_to_draw=args.smiles_to_draw   
+        study_name=args.study_name,
+        total_generated=args.total_generated,
+        smiles_to_draw=args.smiles_to_draw
     )
+
+if __name__ == "__main__":
+   args = parse_arguments()
+   main(args)
