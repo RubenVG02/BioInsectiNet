@@ -2,91 +2,121 @@
 
 ## Overview
 
-This project enables the discovery and design of novel bioinsecticides targeting specific proteins. It features tools for predicting toxicity, generating bioinsecticides, and obtaining 3D structures of the designed molecules. By leveraging neural networks for toxicity prediction and bioinsecticide generation, combined with genetic algorithms for design refinement, this project enhances the efficiency and specificity of bioinsecticide development.
+**BioInsectiNet** is an advanced computational pipeline designed to accelerate the discovery and optimization of bioinsecticides targeting specific proteins. By combining deep learning models—including Recurrent Neural Networks (RNNs) for de novo molecule generation and Transformer-based models for affinity and toxicity prediction—with genetic algorithms for iterative molecular optimization, the project enables precision bioinsecticide design.
+
+The framework also integrates molecular docking tools to analyze 3D interactions between optimized compounds and their protein targets, facilitating a comprehensive in silico workflow from molecule generation to interaction validation. BioInsectiNet leverages publicly available chemical and biological databases (e.g., ChEMBL) for training and evaluation, making it adaptable and extensible for various insecticide design projects.
 
 ## Usage
 
-### Preparing Data
+Preparing Data for Model Training
 
-1. **FASTA Sequence**: Ensure your target protein is in FASTA format (amino acid sequence).
-2. **Neural Networks**: You need two neural networks:
+* **For Affinity Prediction Models (e.g., Transformer-based models):**
+Prepare CSV files containing SMILES, FASTA sequences, and associated IC50 values. Public databases like ChEMBL can be used as data sources.
+Use the script to preprocess data automatically:
+```bash
+python prepare_data.py --input_csv <path_to_input_csv> --output_dir <path_to_output_dir>
+``` 
 
-   - **Toxicity Prediction**: Use `cnn_affinity.py` to train or utilize the pre-trained model.
-   - **Bioinsecticide Generation**: Use `generate_rnn.py` to train or utilize the pre-trained model.
+* **For RNN-based Molecule Generation Models:**
+Prepare a plain text or .smi file with SMILES strings separated by newline characters. These can be sourced from chemical databases or generated experimentally.
 
-   Alternatively, use the pre-trained models located in the `definitive_models` folder.
-3. **Data**: Use data from databases such as Chembl, PubChem, or the provided "insect.csv".
 
-### CNN Usage (Affinity Prediction)
+### Affinity and Toxicity Prediction
 
-To predict toxicity using the CNN model, run:
+Predict the binding affinity and toxicity of candidate bioinsecticides against a target protein using pre-trained Transformer models.
+
+- Pre-trained models are available in `models/checkpoints`.
+- To predict the binding affinity and toxicity of a designed bioinsecticide, run:
+
 
 ```bash
-python check_affinity.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein>
+python check_affinity.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein> ...
 ```
 
-The program will return the toxicity of the designed bioinsecticides using the 'calculate_affinity' function.
+This script outputs predicted affinity and toxicity scores using the internal `calculate_affinity` function.
 
-### RNN Usage (Bioinsecticide Generation)
+### Bioinsecticide Generation with RNN Models
 
-To generate bioinsecticides using the RNN model, run:
+Generate novel bioinsecticide candidates using Recurrent Neural Networks trained on SMILES data.
+
+- Pre-trained RNN models are stored in `models/generator`.
+- Review the README in `models/generator` to select the model that best fits your study needs.
+- To generate new bioinsecticides, run:
+
 
 ```bash
-python predictions_RNN.py --model_path <path_model> --data_path <path_data_model> --save_dir <save_dir> --num_molecules <num_generated_molecules> --min_length <min_length_smiles> --max_length <max_length_smiles> --temperature <temperature> --save_images <bool>
+python generation_RNN.py --model_path <path_model> --data_path <path_data_model> --save_dir <save_dir> --num_molecules <num_generated_molecules> ...
 
 ```
 
-The program will return the designed bioinsecticides using the 'generate' function.
+This will generate new SMILES and optionally save visualizations of the molecules.
 
-### Combination of Models
+### Integrated Generation and Affinity Filtering
 
-For combining both models (generation and toxicity prediction), use:
+Automatically generate bioinsecticide candidates and filter them by predicted affinity/toxicity thresholds in a single pipeline.
 
 ```bash
-python affinity_with_target_and_generator.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein> --toxicity_limit <toxicity_limit> --output_path <path_to_output>
+python affinity_with_target_and_generator.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein> --toxicity_limit <toxicity_limit> --output_path <path_to_output> ...
 ```
 
-The program will generate bioinsecticides and filter out those exceeding the specified toxicity limit. You can also specify a path to check generated molecules.
+This workflow produces candidate molecules optimized to meet your target IC50 (toxicity) constraints and supports uploading results to cloud storage.
 
-### Genetic Algorithm
+### Genetic Algorithm Optimization
 
-To use the genetic algorithm, run:
+Optimize candidate molecules starting either from generated SMILES or from an existing dataset to improve binding affinity and reduce toxicity.
+
+- You can provide SMILES lists directly, CSV files, or generate them on-the-fly via the RNN generator.
+
+- To run the genetic algorithm optimization, use:
+
 
 ```bash
-python genetic_algorithm.py --smiles_list <smiles_list> --csv_file <path_to_csv_file> --rnn_model <path_to_rnn_model> --model_path <path_to_model> --generations <number_of_generations> --output_path <path_to_output>
+python src/genetic_algorithm.py --generate_smiles_from_optimizer --target_fasta <path_to_target_fasta> --objective_ic50 <objective_ic50_value> --generations <num_generations> --population_size <population_size> --num_parents_select <num_parents_select> --mutation_rate <mutation_rate> --stagnation_limit <stagnation_limit> --output_dir <output_dir> --all_results_file <all_results_file> --best_overall_file <best_overall_file> --initial_best_file <initial_best_file> --image_dir <image_dir> ...
 ```
 
-You can provide SMILES sequences directly, via a CSV file, or use an RNN model to guide the generation. The program will return the best SMILES sequence from the last generation.
+The GA will iteratively improve molecule sets over the specified generations, selecting and mutating molecules to optimize affinity and other metrics. In this case, as we use the --generate_smiles_from_optimizer flag, the program will generate new SMILES sequences based on the target protein and the objective IC50 value using the combined RNN and Transformer model approach.
 
-### 3D Representations
 
-To obtain the 3D structure of the designed bioinsecticides, run:
+
+### Molecular Docking and 3D Interaction Analysis
+
+Analyze the 3D binding interactions of optimized bioinsecticide candidates with their protein targets using docking.
+
+Run docking with the following command:
 
 ```bash
-python 3d_repr.py --model_path <path_to_model> --data_path <path_to_data> --target_path <path_to_target_protein> --toxicity_limit <toxicity_limit> --output_path <path_to_output>
+python docking_pipeline.py --smile "<SMILES_string>" --fasta "<FASTA_sequence>" --center <center_coordinates> --box_size <box_size> --output_dir_docking <output_dir_docking> --vina_path <path_to_vina>
+
 ```
 
-This will generate an SDF file containing the 3D structure of the bioinsecticides. Use PyMOL to convert the SDF file to other formats (e.g., PDB) using the pymol_3d.py script.
+This step generates 3D ligand-receptor complexes for visual analysis and further computational studies. This scripts outputs PDBQT files for both the receptor and ligand, which can be used in molecular visualization tools like PyMOL or Chimera.
+
+
 
 ## Installation
 
 Clone the repository:
 
 ```bash
-git clone https://github.com/RubenVG02/BioinsecticidesDiscovery.git
+git clone https://github.com/RubenVG02/BioInsectiNet.git
+cd BioInsectiNet
 ```
 
 Or download the latest release:
 
 ```bash
-wget https://github.com/RubenVG02/BioinsecticidesDiscovery/releases/latest
+wget https://github.com/RubenVG02/BioInsectiNet/releases/latest
 ```
 
-Ensure Python 3.7 or higher is installed. Install the required libraries using:
+## Setup environment
+
+Create and activate the Conda environment with all dependencies using the provided environment.yml:
 
 ```bash
-pip install -r requirements.txt
+conda env create -f environment.yml
+conda activate BioInsectiNet
 ```
+
 
 ## Authors
 
@@ -94,26 +124,39 @@ pip install -r requirements.txt
 
 ## Features
 
-- Design of new bioinsecticides based on the target protein
-- Improving the structure of previously designed bioinsecticides based on the target protein
-- Predicting the toxicity of the designed bioinsecticides
-- Obtaining CSV files and screenshots of the results
-- Obtaining the 3D structure of the designed bioinsecticides in different formats (SFD, PDB, etc.)
-- Fast and easy to use
+- De novo generation of bioinsecticide candidates using advanced RNN models.
+
+- Affinity and toxicity prediction with Transformer architectures for precise evaluation.
+
+- Genetic algorithm-driven optimization of molecule sets for improved bioactivity and safety profiles.
+
+- Automated molecular docking pipeline integrating RDKit, Meeko, and AutoDock Vina for 3D interaction analysis.
+
+- Support for multi-format 3D molecular representations (SDF, PDB).
+
+- Data preprocessing tools compatible with public databases like ChEMBL for seamless training data preparation.
+
+- Modular and scalable pipeline adaptable for drug discovery, agrochemical design, and computational chemistry applications.
+
+- Comprehensive logging, visualization, and result export in CSV and image formats.
 
 ## Future Improvements
 
-- Add more databases to the CNN
-- Add more databases to the RNN
-- More complexity to the GA
+- Integration with additional chemical and biological databases (PubChem, ZINC, BindingDB) for richer training datasets.
+
+- Implementation of Transformer-based molecule generation models alongside RNNs for enhanced chemical space exploration.
+
+- Improved cloud-based storage and distributed computing support for large-scale screening.
+
+- Incorporation of ADMET prediction modules for holistic drug-like property assessment.
+
+- Enhanced user interface (web or GUI) for easier pipeline interaction by non-programmers.
+
+- Expansion to multi-target bioinsecticide design via multi-objective optimization.
+
+- Deployment of active learning loops to iteratively refine models with experimental feedback.
+
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
-
-## Acknowledgements
-
-- [Keras](https://keras.io/)
-- [Tensorflow](https://www.tensorflow.org/)
-- [Numpy](https://numpy.org/)
-- [Pandas](https://pandas.pydata.org/)
+This project is licensed under the MIT License. 
