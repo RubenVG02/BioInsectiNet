@@ -20,7 +20,7 @@ def parse_arguments():
     parser.add_argument("--fasta", type=str, required=True, help="FASTA sequence of the receptor")
     parser.add_argument("--center", type=float, nargs=3, default=[0,0,0], help="Center of docking box (x,y,z)")
     parser.add_argument("--box_size", type=float, nargs=3, default=[20,20,20], help="Size of docking box (x,y,z)")
-    parser.add_argument("--output_dir", type=str, default="output_vina", help="Output directory")
+    parser.add_argument("--output_dir_docking", type=str, default="output_vina", help="Output directory for docking results")
     parser.add_argument("--vina_path", type=str, default=r"./src/vina.exe", help="Path to Vina executable if not in PATH")
     return parser.parse_args()
 
@@ -282,20 +282,20 @@ def viability_check(min_affinity, max_affinity, stats):
 
 def main():
     args = parse_arguments()
-    if os.path.exists(args.output_dir):
+    if os.path.exists(args.output_dir_docking):
         i = 1
-        while os.path.exists(f"{args.output_dir}_{i}"):
+        while os.path.exists(f"{args.output_dir_docking}_{i}"):
             i += 1
-        args.output_dir = f"{args.output_dir}_{i}"
-        print(f"[INFO] Output directory set to {args.output_dir}")
-    os.makedirs(args.output_dir, exist_ok=True)
+        args.output_dir_docking = f"{args.output_dir_docking}_{i}"
+        print(f"[INFO] Output directory set to {args.output_dir_docking}")
+    os.makedirs(args.output_dir_docking, exist_ok=True)
 
     print("[INFO] Generating receptor PDB from FASTA using ESMFold...")
-    pdb_file = fasta_to_pdb_esmfold(args.fasta, args.output_dir)
+    pdb_file = fasta_to_pdb_esmfold(args.fasta, args.output_dir_docking)
 
     print("[INFO] Preparing receptor PDBQT...")
-    receptor_pdbqt = os.path.join(args.output_dir, "receptor.pdbqt")
-    
+    receptor_pdbqt = os.path.join(args.output_dir_docking, "receptor.pdbqt")
+
     # Try different methods in order of preference
     methods_tried = []
     
@@ -308,8 +308,8 @@ def main():
             raise RuntimeError(f"Failed to prepare receptor with all methods tried: {', '.join(methods_tried)}")
 
     print("[INFO] Preparing ligand PDBQT...")
-    ligand_pdbqt = os.path.join(args.output_dir, "ligand.pdbqt")
-    
+    ligand_pdbqt = os.path.join(args.output_dir_docking, "ligand.pdbqt")
+
     # Try different methods for ligand
     ligand_methods_tried = []
     
