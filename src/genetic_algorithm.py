@@ -347,9 +347,11 @@ def genetic_algorithm(
             Draw.MolToFile(best_mol, img_path)
             print(f"Image of the best molecule saved to {img_path}")
     return best_overall
-  
-if __name__ == "__main__":
-    args = parse_arguments()
+
+def main(args=None):
+    if args is None:
+        args = parse_arguments()
+
     if os.path.exists(os.path.join("output_ga", args.output_dir)):
         i = 1
         while os.path.exists(os.path.join("output_ga", f"{args.output_dir}_{i}")):
@@ -420,3 +422,8 @@ if __name__ == "__main__":
         initial_best_file=args.initial_best_file,
         image_dir=args.image_dir
     )
+  
+if __name__ == "__main__":
+    args = parse_arguments()
+    main(args)
+    
