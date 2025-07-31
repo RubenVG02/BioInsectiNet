@@ -18,6 +18,7 @@ import sascorer
 
 from train_RNN_generation import load_smiles, pack_padded_sequence, pad_packed_sequence
 from scripts_with_other_functions.get_paths import compute_unique_chars
+from utils.simple_logger import log_info, log_warning, log_error, log_success
 
 RDLogger.DisableLog('rdApp.*')  # To deactivate RDKit warnings during molecule generation
 
@@ -243,11 +244,11 @@ def generate_druglike_molecules(model_path, char_to_idx, vocab_size, num_molecul
             sas_score = calculate_sas(smiles)
             writer.writerow([smiles, True, sas_score])  
 
-    print(f"[INFO] Generated {len(new_generated_molecules)} drug-like molecules.")
-    print(f"[INFO] SMILES saved to {smiles_file}.")
-    print(f"[INFO] CSV file saved to {csv_file}.")
+    log_info(f"Generated {len(new_generated_molecules)} drug-like molecules.")
+    log_info(f"SMILES saved to {smiles_file}.")
+    log_info(f"CSV file saved to {csv_file}.")
     if save_images:
-        print(f"[INFO] Images saved to {image_dir}.")
+        log_info(f"Images saved to {image_dir}.")
     return new_generated_molecules
 
 
@@ -266,7 +267,7 @@ def get_filename_regex_json(json_path, base_name):
         json_data = json.load(file)
     for path in json_data.keys():
         if re.search(rf"\\{re.escape(base_name)}\.txt$", path):
-            print(f"[INFO] Found matching path: {path}")
+            log_info(f"Found matching path: {path}")
             return path
     return None
 
@@ -293,7 +294,7 @@ if __name__ == "__main__":
             unique_chars_dict = load_unique_chars_dict("models/unique_chars_dict.json")
             unique_chars = unique_chars_dict[args.data_path]      
 
-    print(args.data_path)
+    log_info(f"Using data path: {args.data_path}")
     
     char_to_idx = {char: idx for idx, char in enumerate(unique_chars)}
     vocab_size = len(char_to_idx)  

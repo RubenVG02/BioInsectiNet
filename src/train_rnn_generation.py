@@ -13,6 +13,7 @@ import glob
 import numpy as np
 import argparse
 import json
+from utils.simple_logger import log_info, log_warning, log_error, log_success
 
 # Silence rdkit warnings
 from rdkit import RDLogger
@@ -104,7 +105,7 @@ class ImprovedSMILESGenerator(nn.Module):
 def get_percentile_95(smiles_list):
     lengths = [len(smile) for smile in smiles_list]
     percentile_90 = np.percentile(lengths, 95)
-    print(f"90th percentile: {percentile_90}")
+    log_info(f"90th percentile: {percentile_90}")
     return percentile_90
 
 
@@ -127,19 +128,19 @@ def train_model():
         file_name = os.path.basename(args.file_path).split(".")[0]
     else:
         file_name = args.custom_name
-    print("Loading data and tokenizing...")
+    log_info("Loading data and tokenizing...")
     smiles_list = load_smiles(args.file_path)
-    print(max(len(s) for s in smiles_list))
+    log_info(f"Max SMILES length: {max(len(s) for s in smiles_list)}")
     if args.filter_percentile:
         if max(len(s) for s in smiles_list) < 160:
             max_length = max(len(s) for s in smiles_list) + 1  # +1 to account for newline character
-            print(f"Max length: {max_length}")
+            log_info(f"Max length: {max_length}")
         else:
             max_length = int(get_percentile_95(smiles_list) + 1)  # using 90th percentile to set the max_length instead of the longest sequence (mainly used for the longest sequence dataset)
-            print("Max length set to 90th percentile." + str(max_length)) 
+            log_info("Max length set to 90th percentile: " + str(max_length)) 
     else:
         max_length = max(len(s) for s in smiles_list) + 1  # +1 to account for newline character
-        print(f"Max length: {max_length}")
+        log_info(f"Max length: {max_length}")
 
     
 
@@ -154,7 +155,7 @@ def train_model():
     if unknown_chars:
         raise ValueError("Unknown characters in SMILES: {}".format(unknown_chars))
 
-    print("Creating dataset and dataloader...")
+    log_info("Creating dataset and dataloader...")
     
     
     train_smiles, val_smiles = train_test_split(smiles_list, test_size=0.2, random_state=42)
@@ -179,15 +180,15 @@ def train_model():
 
     if model_files:
         latest_model_path = max(model_files, key=os.path.getctime)
-        print(f"Loading pre-trained model from {latest_model_path}...")
+        log_info(f"Loading pre-trained model from {latest_model_path}...")
         model.load_state_dict(torch.load(latest_model_path, map_location=device))
-        print("Pre-trained model loaded successfully!")
+        log_success("Pre-trained model loaded successfully!")
     else:
-        print("No pre-trained model found. Starting from scratch.")
+        log_warning("No pre-trained model found. Starting from scratch.")
         
 
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
-    print("Training model...")
+    log_info("Training model...")
     smoother = SmoothingFunction().method1  # Function to smooth the BLEU score
     loss_scores = []
     bleu_scores = []
@@ -229,7 +230,7 @@ def train_model():
 
         avg_loss = total_loss / num_batches
         avg_bleu = total_bleu / num_batches
-        print(f"Epoch {epoch + 1}/{args.epochs}, Loss: {avg_loss:.4f}, BLEU Score: {avg_bleu:.4f}")
+        log_info(f"Epoch {epoch + 1}/{args.epochs}, Loss: {avg_loss:.4f}, BLEU Score: {avg_bleu:.4f}")
 
         model.eval()
         val_loss = 0
@@ -253,7 +254,7 @@ def train_model():
 
         val_loss /= len(val_loader)
         val_bleu /= len(val_loader.dataset)
-        print(f"Validation Loss: {val_loss:.4f}, Validation BLEU Score: {val_bleu:.4f}")
+        log_info(f"Validation Loss: {val_loss:.4f}, Validation BLEU Score: {val_bleu:.4f}")
 
         scheduler.step(val_loss)
         loss_scores.append(avg_loss)
@@ -265,7 +266,7 @@ def train_model():
         if val_loss < min_loss:
             min_loss = val_loss
             patience_counter = 0
-            print("Model Improved! Saving...")
+            log_success("Model Improved! Saving...")
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
             torch.save(model.state_dict(), os.path.join(model_dir, f"{file_name}_{curr_date}.pth"))
@@ -273,21 +274,21 @@ def train_model():
             patience_counter += 1
             if patience_counter >= args.patience:
 
-                print("Early stopping triggered.")
+                log_warning("Early stopping triggered.")
                 if args.log_path is not None:
-                    print("Saving epoch state...")
+                    log_info("Saving epoch state...")
                     if not "/" in args.log_path:
                         args.log_path = os.path.join(model_dir, args.log_path)
                     save_epoch_state(args.log_path, file_name, epoch + 1, early_stop=True)
                 break
 
         if args.log:
-            print("Saving epoch state...")
+            log_info("Saving epoch state...")
             if not "/" in args.log_path:
                 args.log_path = os.path.join(model_dir, args.log_path)
             save_epoch_state(args.log_path, file_name, epoch + 1)
 
-    print("Training finished!")
+    log_success("Training finished!")
 
     plt.figure(figsize=(18, 6))
     plt.subplot(1, 2, 1)
@@ -317,4 +318,4 @@ if __name__ == "__main__":
     PAD_TOKEN = "<PAD>"  
 
     train_model()
-    print("Done!")
+    log_success("Done!")

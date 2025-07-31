@@ -17,6 +17,7 @@ import argparse
 import subprocess
 import json
 from sklearn.metrics import mean_squared_error, r2_score
+from utils.simple_logger import log_info, log_warning, log_error, log_success
 
 torch._dynamo.config.suppress_errors = True
 torch._dynamo.disable()
@@ -161,13 +162,13 @@ def preprocess_data(csv_path, tokenizer_fasta, model_fasta, tokenizer_smiles, mo
     if save_path:
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         df.to_pickle(save_path)
-        print(f"[INFO] Preprocessed data saved to {save_path}.")
+        log_info(f"Preprocessed data saved to {save_path}.")
     
     return df
 
 def load_preprocessed_data(pkl_path):
     if os.path.exists(pkl_path):
-        print(f"[INFO] Loading preprocessed data from {pkl_path}.")
+        log_info(f"Loading preprocessed data from {pkl_path}.")
         return pd.read_pickle(pkl_path)
 
 
@@ -224,7 +225,7 @@ class CombinedModel(nn.Module):
                 if hidden_dim % i == 0:
                     n_attention_heads = i
                     if verbose:
-                        print(f"[INFO] Adjusted n_attention_heads to {n_attention_heads} for hidden_dim {hidden_dim}.")
+                        log_info(f"Adjusted n_attention_heads to {n_attention_heads} for hidden_dim {hidden_dim}.")
                     break
             if hidden_dim % n_attention_heads != 0:
                 n_attention_heads = 1
@@ -378,7 +379,7 @@ def train_model_with_optuna(trial, model, train_loader, val_loader, lr, weight_d
 
         r2 = r2_score(all_targets, all_preds)
         mse = mean_squared_error(all_targets, all_preds)
-        print(f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Val Loss: {avg_val_loss:.4f}, R2: {r2:.4f}, MSE: {mse:.4f}")
+        log_info(f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Val Loss: {avg_val_loss:.4f}, R2: {r2:.4f}, MSE: {mse:.4f}")
 
         scheduler.step(avg_val_loss)
         
@@ -390,7 +391,7 @@ def train_model_with_optuna(trial, model, train_loader, val_loader, lr, weight_d
             
         early_stopping(avg_val_loss)
         if early_stopping.early_stop:
-            print(f"[INFO] Early stopping triggered after {epoch+1} epochs.")
+            log_info(f"Early stopping triggered after {epoch+1} epochs.")
             break
     
     
@@ -448,7 +449,7 @@ if __name__ == "__main__":
     
 
     # We use esm2_t12_35M_UR50D and ChemBERTa-77M-MTR as the tokenizers and models for the embeddings
-    print("[INFO] Initializing tokenizers and models for embeddings...")
+    log_info("Initializing tokenizers and models for embeddings...")
     tokenizer_fasta = AutoTokenizer.from_pretrained("facebook/esm2_t12_35M_UR50D",trust_remote_code=True)
     model_fasta = AutoModel.from_pretrained("facebook/esm2_t12_35M_UR50D", torch_dtype=torch.float16).to(device)
     tokenizer_smiles = AutoTokenizer.from_pretrained("seyonec/PubChem10M_SMILES_BPE_450k")
@@ -458,7 +459,7 @@ if __name__ == "__main__":
     model_smiles = model_smiles.to(device).eval()
 
     if hasattr(torch, "compile"):
-        print("[INFO] Compiling models for performance optimization...")
+        log_info("Compiling models for performance optimization...")
         model_fasta = torch.compile(model_fasta, backend="aot_eager")
         model_smiles = torch.compile(model_smiles, backend="aot_eager")
     
@@ -474,9 +475,9 @@ if __name__ == "__main__":
 
     try:
         study = optuna.load_study(study_name=args.study_name, storage=args.storage)
-        print(f"[INFO] Loaded existing study: {args.study_name} from {args.storage}")
+        log_info(f"Loaded existing study: {args.study_name} from {args.storage}")
     except:
-        print(f"[INFO] Creating new study: {args.study_name} with storage {args.storage}")
+        log_info(f"Creating new study: {args.study_name} with storage {args.storage}")
         study = optuna.create_study(direction="minimize", study_name=args.study_name, storage=args.storage, pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=10, interval_steps=1))
    
 
@@ -484,16 +485,16 @@ if __name__ == "__main__":
     if args.visualize:
         if not "sqlite:///" in args.storage:
             args.storage = f"sqlite:///{args.storage}"
-        print("[INFO] Launching Optuna dashboard...")
+        log_info("Launching Optuna dashboard...")
         #stdout=subprocess.DEVNULL to hide the output logs, which are constantly updating during the optimization.
         subprocess.Popen(f"optuna-dashboard {args.storage}", shell=True, stdout=subprocess.DEVNULL, creationflags=subprocess.CREATE_NEW_CONSOLE) 
-        print("[INFO] Optuna dashboard launched. You can access it at http://localhost:8080")
+        log_info("Optuna dashboard launched. You can access it at http://localhost:8080")
     
     study.optimize(lambda trial: objective(trial, train_dataset, val_dataset), n_trials=args.n_trials)
 
-    print(f"[INFO] Optimization completed with {len(study.trials)} trials.")
-    print(f"[INFO] Best trial: {study.best_trial.number} with value {study.best_value:.4f} and params {study.best_trial.params}")
-    print(f"[INFO] Best model path: {study.best_trial.user_attrs['model_path']}")
+    log_success(f"Optimization completed with {len(study.trials)} trials.")
+    log_info(f"Best trial: {study.best_trial.number} with value {study.best_value:.4f} and params {study.best_trial.params}")
+    log_info(f"Best model path: {study.best_trial.user_attrs['model_path']}")
 
 
     for file in os.listdir(output_path):
@@ -501,7 +502,7 @@ if __name__ == "__main__":
             if study.best_value != float(file.split("_")[-1].split(".")[0]):
                 os.remove(os.path.join(output_path, file))
             else:
-                print(f"[INFO] Keeping best model: {file}")
+                log_info(f"Keeping best model: {file}")
 
                 
 

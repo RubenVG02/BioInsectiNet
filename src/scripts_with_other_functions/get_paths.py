@@ -2,6 +2,7 @@ import json
 import os
 import numpy as np
 import argparse
+from utils.simple_logger import log_info, log_warning, log_error, log_success
 
 PAD_TOKEN = "<PAD>"
 
@@ -10,7 +11,7 @@ def compute_unique_chars(smiles_list):
 
 def get_90th_percentile_length(smiles_list):
     percentile_90 = int(np.percentile([len(smiles) for smiles in smiles_list], 90))
-    print(f"[INFO] 90th percentile length of SMILES: {percentile_90}")
+    log_info(f"90th percentile length of SMILES: {percentile_90}")
     return percentile_90
 
 def truncate_data_90_percentile(smiles_list, max_length):
@@ -22,14 +23,14 @@ def create_unique_chars_dict(file_paths):
         with open(file_path, "r") as f:
             smiles_list = f.read().splitlines()
         
-        print(f"[INFO] Processing file: {file_path}")
+        log_info(f"Processing file: {file_path}")
         percentile_90 = get_90th_percentile_length(smiles_list)
-        print(percentile_90)
+        log_info(f"90th percentile: {percentile_90}")
         
         # If the 90th percentile is greater than 155, truncate the data to that length
         # We use the 90th percentile length as a heuristic to avoid truncating too much data and also to improve the training speed and prediction quality
         if percentile_90 > 155:
-            print(f"[INFO] Truncating SMILES to 155 characters for {file_path}.")
+            log_info(f"Truncating SMILES to 155 characters for {file_path}.")
             smiles_list = truncate_data_90_percentile(smiles_list, 155) # Truncate to 155 characters
         
         unique_chars = compute_unique_chars(smiles_list)
@@ -48,7 +49,7 @@ def load_unique_chars_dict(input_file):
 def ensure_directory_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
-        print(f"[INFO] Created directory: {directory}")
+        log_info(f"Created directory: {directory}")
 
 def main():
     parser = argparse.ArgumentParser(description="Process SMILES files and compute unique characters for every .txt file inside an specific dir and its subdirectories.")
@@ -63,7 +64,7 @@ def main():
         for file in files:
             file_paths.append(os.path.join(root, file))
         if not file_paths:
-            print(f"[WARNING] No files found in {args.input_dir}. Please check the directory.")
+            log_warning(f"No files found in {args.input_dir}. Please check the directory.")
             return
 
     unique_chars_dict = create_unique_chars_dict(file_paths)
@@ -72,7 +73,7 @@ def main():
     ensure_directory_exists(output_dir)
 
     save_unique_chars_dict(unique_chars_dict, args.output_file)
-    print(f"[INFO] Unique characters dictionary saved to {args.output_file}")
+    log_success(f"Unique characters dictionary saved to {args.output_file}")
 
 if __name__ == "__main__":
     main()
