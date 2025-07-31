@@ -4,6 +4,7 @@ import numpy as np
 from transformers import AutoTokenizer, AutoModel
 
 from scripts_with_other_functions.get_hyperparams_db import get_best_trial
+from utils.simple_logger import log_info, log_warning, log_error, log_success
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -55,4 +56,4 @@ if __name__ == "__main__":
     affinity = 10 ** -raw # As we used -log10(affinity) during training, we need to reverse this transformation
 
     affinity = round(affinity, 2)
-    print(f"Predicted affinity: {affinity}")
+    log_info(f"Predicted affinity: {affinity}")
