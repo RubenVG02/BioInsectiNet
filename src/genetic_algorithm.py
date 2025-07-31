@@ -7,6 +7,7 @@ import os
 
 from generate_molecules_with_affinity import find_candidates
 from check_affinity import predict_affinity, get_best_trial
+from utils.logger import log_info, log_warning, log_error, log_success
 
 best_trial = get_best_trial("models/cnn_affinity.db", study_name="cnn_affinity")
 
@@ -98,20 +99,21 @@ def load_smiles_from_file(file_path: str) -> list:
 
     return smiles_list
     
-def score_population(population: list, target: str):
+def score_population(population: list, target: str, path_model: str = "models/checkpoints/cnn_affinity/trial_1_loss_0.1974.pth"):
     """
     Score a population of SMILES strings based on their affinity to the target.
 
     Parameters:
         population (list of str): List of SMILES strings.
         target (str): Sequence of the target in FASTA format.
+        path_model (str): Path to the affinity prediction model.
 
     Returns:
         list of tuples: List of tuples containing SMILES strings and their affinities, sorted by affinity.
     """
-    scores = [10 ** - predict_affinity(smile, target, best_trial=best_trial, path_model=args.affinity_model_path) for smile in population]
+    scores = [10 ** - predict_affinity(smile, target, best_trial=best_trial, path_model=path_model) for smile in population]
     scores = [round(score, 2) for score in scores]
-    print(f"[INFO] Scored {len(population)} molecules.")
+    log_info(f"Scored {len(population)} molecules.")
     return sorted(zip(population, scores), key=lambda x: x[1])
 
 def check_druglikeness(smile: str) -> bool:
@@ -178,7 +180,7 @@ def generate_children(parent1: str, parent2: str, mutation_attempts: int = DEFAU
     child1 = Chem.MolToSmiles(child1) if isinstance(child1, Chem.Mol) else child1
     child2 = Chem.MolToSmiles(child2) if isinstance(child2, Chem.Mol) else child2
     if Chem.MolFromSmiles(child1) is  Chem.MolFromSmiles(child2):
-        print(f"Failed to crossover {parent1} and {parent2}. Returning parents.")
+        log_warning(f"Failed to crossover {parent1} and {parent2}. Returning parents.")
         return [parent1, parent2]
     
 
@@ -263,15 +265,26 @@ def genetic_algorithm(
     all_results_file: str = "all_scored_molecules",
     best_overall_file: str = "best_molecule_overall",
     initial_best_file: str = "best_molecule_initial",
-    image_dir: str = "molecule_images"
+    image_dir: str = "molecule_images",
+    affinity_model_path: str = "models/checkpoints/cnn_affinity/trial_1_loss_0.1974.pth"
 ):
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(os.path.join(output_dir, image_dir), exist_ok=True)
 
     if len(initial_pop_source) > population_size:
-        print(f"[INFO] Initial population size ({len(initial_pop_source)}) exceeds the target population size ({population_size}). Trimming to {population_size}.")
+        log_info(f"Initial population size ({len(initial_pop_source)}) exceeds the target population size ({population_size}). Trimming to {population_size}.")
         population = random.sample(initial_pop_source, population_size)
-    scored_population = score_population(population, target_fasta)
+    else:
+        log_info(f"Initial population size ({len(initial_pop_source)}) is smaller than target population size ({population_size}). Using all initial molecules.")
+        population = initial_pop_source
+    
+    # Adjust num_parents_select if it's larger than the population
+    actual_population_size = len(population)
+    if num_parents_select > actual_population_size:
+        log_info(f"Adjusting num_parents_select from {num_parents_select} to {actual_population_size} to match population size.")
+        num_parents_select = actual_population_size
+    
+    scored_population = score_population(population, target_fasta, affinity_model_path)
 
     best_initial = scored_population[0]
     save_output(os.path.join(output_dir, initial_best_file), [best_initial])
@@ -280,18 +293,20 @@ def genetic_algorithm(
     generations_without_improvement = 0
 
     def tournament_selection(scored_population, num_parents, tournament_size=3):
+            # Adjust tournament size if population is smaller
+            actual_tournament_size = min(tournament_size, len(scored_population))
             selected_parents = []
             for _ in range(num_parents):
-                tournament = random.sample(scored_population, tournament_size)
+                tournament = random.sample(scored_population, actual_tournament_size)
                 winner = min(tournament, key=lambda x: x[1])  # select the one with the lowest affinity
                 selected_parents.append(winner[0])  # get the SMILES of the winner
             return selected_parents
 
     for gen in range(generations):
-        print(f"Generation {gen+1}/{generations}")
+        log_info(f"Generation {gen+1}/{generations}")
         
         if best_overall[1] <= objective_ic50:
-            print(f"Objective IC50 {objective_ic50} reached with {best_overall[1]:.2f}. Stopping.")
+            log_success(f"Objective IC50 {objective_ic50} reached with {best_overall[1]:.2f}. Stopping.")
             break
 
         parents = tournament_selection(scored_population, num_parents_select, tournament_size=3)
@@ -320,7 +335,7 @@ def genetic_algorithm(
             next_gen_candidates.extend(parents)
             next_gen_candidates = next_gen_candidates[:population_size]
 
-        scored_population = score_population(next_gen_candidates, target_fasta)
+        scored_population = score_population(next_gen_candidates, target_fasta, affinity_model_path)
         scored_population = list(set(scored_population))  # Remove duplicates
         scored_population = sorted(scored_population, key=lambda x: x[1])
 
@@ -329,23 +344,23 @@ def genetic_algorithm(
         if scored_population[0][1] < best_overall[1]:
             best_overall = scored_population[0]
             generations_without_improvement = 0
-            print(f"New best: {best_overall}")
+            log_success(f"New best: {best_overall}")
         else:
             generations_without_improvement += 1
-            print(f"No improvement. Stagnation: {generations_without_improvement}/{stagnation_limit}. Current best: {best_overall}")
+            log_info(f"No improvement. Stagnation: {generations_without_improvement}/{stagnation_limit}. Current best: {best_overall}")
 
         if generations_without_improvement >= stagnation_limit:
-            print("Stagnation limit reached. Stopping.")
+            log_warning("Stagnation limit reached. Stopping.")
             save_output(os.path.join(output_dir, best_overall_file), [best_overall])
             break
 
-    print(f"Best molecule found: {best_overall}")
+    log_success(f"Best molecule found: {best_overall}")
     if image_dir:
         best_mol = Chem.MolFromSmiles(best_overall[0])
         if best_mol:
             img_path = os.path.join(output_dir, image_dir, f"best_molecule_gen{gen+1}.png")
             Draw.MolToFile(best_mol, img_path)
-            print(f"Image of the best molecule saved to {img_path}")
+            log_info(f"Image of the best molecule saved to {img_path}")
     return best_overall
 
 def main(args=None):
@@ -356,10 +371,10 @@ def main(args=None):
         i = 1
         while os.path.exists(os.path.join("output_ga", f"{args.output_dir}_{i}")):
             i += 1
-        print(f"[INFO] Output directory already exists. Creating a new one: {args.output_dir}_{i}")
+        log_info(f"Output directory already exists. Creating a new one: {args.output_dir}_{i}")
         output_dir = os.path.join("output_ga", f"{args.output_dir}_{i}")
     else:
-        print(f"[INFO] Creating output directories: {args.output_dir} and {args.image_dir}")
+        log_info(f"Creating output directories: {args.output_dir} and {args.image_dir}")
         output_dir = os.path.join("output_ga", args.output_dir)
     image_dir = os.path.join(output_dir, args.image_dir)
     os.makedirs("output_ga", exist_ok=True)
@@ -377,7 +392,7 @@ def main(args=None):
     if args.generate_smiles_from_optimizer:
         # Generate initial population using the optimizer
         # In order to save time, the objective IC50 is set to a higher value than the one used in the genetic algorithm
-        print("[INFO] Generating initial population using the optimizer...")
+        log_info("Generating initial population using the optimizer...")
         find_candidates(
             target=args.target_fasta,
             name_file_destination=args.generator_output_name_destination,
@@ -400,10 +415,10 @@ def main(args=None):
         initial_population = load_smiles_from_file(os.path.join(output_dir, args.generator_output_name_destination, args.generator_output_name_destination + ".csv"))
 
     elif args.initial_pop_source and os.path.isfile(args.initial_pop_source):
-        print(f"[INFO] Loading initial population from {args.initial_pop_source}...")
+        log_info(f"Loading initial population from {args.initial_pop_source}...")
         initial_population = load_smiles_from_file(args.initial_pop_source)
     else:
-        print("[INFO] Using provided initial population source as a list of SMILES.")
+        log_info("Using provided initial population source as a list of SMILES.")
         initial_population = args.initial_pop_source.split(',')
 
     # Run the genetic algorithm
