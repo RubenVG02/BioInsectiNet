@@ -3,6 +3,7 @@ from mega import Mega
 
 from generation_RNN import generate_druglike_molecules, load_unique_chars_dict
 from check_affinity import predict_affinity, get_best_trial
+from utils.simple_logger import log_info, log_warning, log_error, log_success
 
 import pandas as pd
 
@@ -92,11 +93,11 @@ def draw_best(smiles_to_draw, ic50: list, smiles: list, name_file: str, output_d
     for i in range(smiles_to_draw):
         mol = Chem.MolFromSmiles(ordered_df["SMILES"][i])
         if mol is None:
-            print(f"[WARNING] Invalid SMILES: {ordered_df['SMILES'][i]}")
+            log_warning(f"Invalid SMILES: {ordered_df['SMILES'][i]}")
             continue
         img = Draw.MolToImage(mol, size=(300, 300))
         img.save(os.path.join(output_dir, f"best_molecule_{i+1}_{name_file}.jpg"))
-        print(f"[INFO] Saved image for molecule {i+1} with IC50 {ordered_df['IC50'][i]} to {output_dir}/best_molecule_{i+1}_{name_file}.jpg")
+        log_info(f"Saved image for molecule {i+1} with IC50 {ordered_df['IC50'][i]} to {output_dir}/best_molecule_{i+1}_{name_file}.jpg")
 
 
 
@@ -149,12 +150,12 @@ def find_candidates(
             raise FileNotFoundError(f"The file {path_db_smiles} does not exist.")
         with open(path_db_smiles, "r") as f:
             generated = [line.strip() for line in f]
-            print(f"[INFO] Loaded {len(generated)} SMILES from {path_db_smiles}.")
+            log_info(f"Loaded {len(generated)} SMILES from {path_db_smiles}.")
 
     else:
         base_name = os.path.basename(generator_model_path)
         data_path = re.sub(r'_v\d+\.pth$', '', base_name) + ".txt"
-        print(f"[INFO] Using data path: {data_path} for unique characters dictionary.")
+        log_info(f"Using data path: {data_path} for unique characters dictionary.")
 
         unique_chars_dict = load_unique_chars_dict("models/unique_chars_dict.json")
 
@@ -163,13 +164,13 @@ def find_candidates(
             unique_chars = unique_chars_dict[key_found]
         else:
             raise ValueError(f"[ERROR] Unique characters for {data_path} not found in the dictionary.")
-        print(f"[INFO] Using {len(unique_chars)} unique characters for SMILES generation.")
+        log_info(f"Using {len(unique_chars)} unique characters for SMILES generation.")
         char_to_idx = {char: idx for idx, char in enumerate(unique_chars)}
 
 
         generated = generate_druglike_molecules(generator_model_path, num_molecules=total_generated, save_images=False, 
                                                  char_to_idx=char_to_idx, max_length=155, vocab_size=len(unique_chars))
-        print(f"[INFO] Generated {len(generated)} SMILES using RNN generator.")
+        log_info(f"Generated {len(generated)} SMILES using RNN generator.")
 
     # If the output dir with the name_file_destination does exist, we add a number to the name_file_destination until it is unique
     os.makedirs(output_dir, exist_ok=True)
@@ -178,7 +179,7 @@ def find_candidates(
         while os.path.exists(os.path.join(output_dir, f"{name_file_destination}_{i}")):
             i += 1
         name_file_destination = f"{name_file_destination}_{i}"
-        print(f"[INFO] Output directory already exists. Using {name_file_destination} instead.")
+        log_info(f"Output directory already exists. Using {name_file_destination} instead.")
     os.makedirs(os.path.join(output_dir, name_file_destination), exist_ok=True)
     csv_path = os.path.join(output_dir, name_file_destination, f"{name_file_destination}.csv")
     file_destination = os.path.join(output_dir, name_file_destination)
@@ -186,13 +187,13 @@ def find_candidates(
 
     df = pd.DataFrame(columns=["SMILES", "IC50", "SA_Score"])
     df.to_csv(csv_path, index=False) 
-    print(f"[INFO] Created new CSV with headers at {csv_path}.")
+    log_info(f"Created new CSV with headers at {csv_path}.")
 
     results = []
 
     # We divide the generated molecules into batches of 150 to avoid memory issues
     total_hits = 0
-    print(f"[INFO] Starting to process {len(generated)} generated molecules.")
+    log_info(f"Starting to process {len(generated)} generated molecules.")
     while total_hits < max_molecules and generated:
         batch = generated[:150]
         generated = generated[150:]
@@ -221,13 +222,13 @@ def find_candidates(
                     total_hits += 1
                     if total_hits >= max_molecules:
                         break
-    print(f"[INFO] Found {len(results)} valid molecules with IC50 < {accepted_value}.")
+    log_success(f"Found {len(results)} valid molecules with IC50 < {accepted_value}.")
 
     new_df = pd.DataFrame(results, columns=["SMILES", "IC50", "SA_Score"])
     final_df = pd.concat([df, new_df], ignore_index=True)
     final_df.to_csv(csv_path, index=False)
 
-    print(f"[INFO] Results saved to {csv_path}.")
+    log_info(f"Results saved to {csv_path}.")
     if draw_lowest and not new_df.empty:
         img_dir = os.path.join(output_dir, name_file_destination)
         draw_best(smiles_to_draw, new_df["IC50"].tolist(), new_df["SMILES"].tolist(), name_file_destination, img_dir)
