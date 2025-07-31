@@ -160,7 +160,8 @@ This step generates 3D ligand-receptor complexes for visual analysis and further
 ```bash
 python main.py --target_fasta "PROTEIN_SEQUENCE" --run_all \
   --total_generated 2000 \
-  --temperature 1.2 \
+  --generations 100 \
+  --accepted_value 1000.0 \
   --min_length 15 \
   --max_length 200
 ```
@@ -212,26 +213,6 @@ Create and activate the Conda environment:
 ```bash
 conda env create -f environment.yml
 conda activate BioInsectiNet
-```
-
-### Manual Setup
-
-If you prefer manual installation:
-
-```bash
-# Create new environment
-conda create -n BioInsectiNet python=3.9
-conda activate BioInsectiNet
-
-# Install dependencies
-pip install torch torchvision torchaudio
-pip install rdkit-pypi
-pip install biopython
-pip install optuna
-pip install meeko
-pip install matplotlib seaborn
-pip install qrcode[pil]
-pip install mega.py
 ```
 
 **Note**: AutoDock Vina will be automatically downloaded if not found in the system PATH.
