@@ -6,6 +6,7 @@ import numpy as np
 from scripts_with_other_functions.get_hyperparams_db import get_best_trial
 import torch
 from transformers import AutoTokenizer, AutoModel
+from utils.simple_logger import log_info, log_warning, log_error, log_success
 
 
 def compare_predictions(file_path, model_path, best_trial, total_predictions):
@@ -88,7 +89,7 @@ if __name__ == "__main__":
 
     compare_predictions(args.file_path, args.model_path, best_trial, args.total_predictions)
     correlation_coefficient = np.corrcoef(predicted_values, true_values)[0, 1]
-    print(f"Correlation coefficient between predicted and true values: {correlation_coefficient:.2f}")
+    log_info(f"Correlation coefficient between predicted and true values: {correlation_coefficient:.2f}")
 
     if args.plot:
         create_scatter_plot(predicted_values, true_values)
