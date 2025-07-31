@@ -135,3 +135,5 @@ samples/
 data_zinc/
 samples
 vina.exe
+
+.gitignore
